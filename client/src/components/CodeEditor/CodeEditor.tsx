@@ -29,6 +29,7 @@ export function CodeEditor({
   currentPlayerId,
 }: CodeEditorProps) {
   const errors = useGameStore((s) => s.errors);
+  const highlightErrorsInFile = useGameStore((s) => s.highlightErrorsInFile);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
   const cursorDecorationIdsRef = useRef<string[]>([]);
@@ -76,6 +77,7 @@ export function CodeEditor({
   );
 
   const fileErrors = errors.filter((e) => e.file === fileName);
+  const shouldHighlightErrors = highlightErrorsInFile === fileName;
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -83,24 +85,25 @@ export function CodeEditor({
     const model = editor.getModel();
     if (!model) return;
 
-    const newDecorations: editor.IModelDeltaDecoration[] = fileErrors.map(
-      (err: CodeError) => ({
-        range: {
-          startLineNumber: err.range.startLine + 1,
-          startColumn: err.range.startColumn + 1,
-          endLineNumber: err.range.endLine + 1,
-          endColumn: err.range.endColumn + 1,
-        },
-        options: {
-          inlineClassName: "code-error-highlight",
-        },
-      })
-    );
+    const newDecorations: editor.IModelDeltaDecoration[] =
+      shouldHighlightErrors
+        ? fileErrors.map((err: CodeError) => ({
+            range: {
+              startLineNumber: err.range.startLine + 1,
+              startColumn: err.range.startColumn + 1,
+              endLineNumber: err.range.endLine + 1,
+              endColumn: err.range.endColumn + 1,
+            },
+            options: {
+              inlineClassName: "code-error-highlight",
+            },
+          }))
+        : [];
     decorationIdsRef.current = editor.deltaDecorations(
       decorationIdsRef.current,
       newDecorations
     );
-  }, [fileErrors]);
+  }, [fileErrors, shouldHighlightErrors]);
 
   const othersOnThisFile = presences.filter(
     (p) => p.id !== currentPlayerId && p.file === fileName

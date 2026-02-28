@@ -1,3 +1,5 @@
+import { useState, useCallback } from "react";
+import { FiCopy } from "react-icons/fi";
 import { useGameStore } from "../../stores/gameStore";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
 
@@ -18,6 +20,7 @@ export function LobbyWaiting({
   playerName,
   onLeave,
 }: LobbyWaitingProps) {
+  const [copied, setCopied] = useState(false);
   const { players, connectionStatus } = useGameStore();
   const { sendStartGame } = usePartyConnection(roomId, {
     name: isHost ? (hostName || "Host") : playerName || undefined,
@@ -25,13 +28,33 @@ export function LobbyWaiting({
     languages: isHost ? hostLanguages ?? ["javascript"] : undefined,
   });
 
+  const copyCode = useCallback(() => {
+    navigator.clipboard.writeText(roomId).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [roomId]);
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
       <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full">
-        <p className="text-gray-400 text-sm mb-2">
-          Lobby code:{" "}
-          <span className="font-mono font-bold text-white">{roomId}</span>
-        </p>
+        <div className="flex items-center gap-2 mb-2">
+          <p className="text-gray-400 text-sm">
+            Lobby code:{" "}
+            <span className="font-mono font-bold text-white">{roomId}</span>
+          </p>
+          <button
+            type="button"
+            onClick={copyCode}
+            title="Copy code"
+            className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+          >
+            <FiCopy className="w-4 h-4" aria-hidden />
+          </button>
+          {copied && (
+            <span className="text-xs text-green-400">Copied!</span>
+          )}
+        </div>
         <p
           className={`text-sm mb-6 ${
             connectionStatus === "connected"

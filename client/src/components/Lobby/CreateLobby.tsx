@@ -23,24 +23,18 @@ interface CreateLobbyProps {
 export function CreateLobby({ onJoined }: CreateLobbyProps) {
   const [lobbyCode, setLobbyCode] = useState<string | null>(null);
   const [hostName, setHostName] = useState("");
-  const [selectedLangs, setSelectedLangs] = useState<string[]>(["javascript"]);
-
-  const toggleLang = (id: string) => {
-    setSelectedLangs((prev) =>
-      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id]
-    );
-  };
+  const [selectedLang, setSelectedLang] = useState<string>("javascript");
 
   usePartyConnection(lobbyCode, {
     name: hostName.trim() || "Host",
     isHost: true,
-    languages: selectedLangs,
+    languages: [selectedLang],
   });
 
   const handleCreate = () => {
     const code = generateLobbyCode();
     setLobbyCode(code);
-    onJoined(code, selectedLangs, hostName.trim() || "Host");
+    onJoined(code, [selectedLang], hostName.trim() || "Host");
   };
 
   if (lobbyCode) {
@@ -74,15 +68,15 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
         />
       </div>
       <div>
-        <p className="text-gray-400 mb-2">Select programming language(s):</p>
+        <p className="text-gray-400 mb-2">Select programming language:</p>
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.id}
               type="button"
-              onClick={() => toggleLang(lang.id)}
+              onClick={() => setSelectedLang(lang.id)}
               className={`px-4 py-2 rounded-lg border transition ${
-                selectedLangs.includes(lang.id)
+                selectedLang === lang.id
                   ? "bg-blue-600 border-blue-500 text-white"
                   : "bg-gray-800 border-gray-600 text-gray-400 hover:border-gray-500"
               }`}

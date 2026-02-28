@@ -61,9 +61,19 @@ export interface GameState {
   errorThreshold: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  senderId: string;
+  text: string;
+  time: string;
+}
+
 export type ClientMessage =
   | { type: "presence"; file: string; cursor: CursorPosition }
   | { type: "guess"; errorId: string; guessedType: ErrorType }
-  | { type: "buy_powerup"; powerupId: string }
+  | { type: "buy_powerup"; powerupId: string; currentFile?: string }
   | { type: "start_game" }
-  | { type: "select_file"; file: string };
+  | { type: "select_file"; file: string }
+  | { type: "chat"; text: string }
+  | { type: "return_to_lobby" };

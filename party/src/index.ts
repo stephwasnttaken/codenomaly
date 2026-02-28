@@ -50,6 +50,7 @@ interface GameState {
   errors: CodeError[];
   languages: string[];
   errorThreshold: number;
+  returnedAfterGameOver?: string[];
 }
 
 const COLORS = [
@@ -92,6 +93,7 @@ export default class Server implements Party.Server {
       errors: [],
       languages: isHost ? languages : [],
       errorThreshold: 5,
+      returnedAfterGameOver: [],
     };
 
     state.players = state.players.filter((p) => p.id !== connection.id);
@@ -135,7 +137,12 @@ export default class Server implements Party.Server {
           await this.handleBuyPowerup(sender, msg, state);
           break;
         case "select_file":
-          // Optional: track per-connection file view
+          break;
+        case "chat":
+          await this.handleChat(sender, msg);
+          break;
+        case "return_to_lobby":
+          await this.handleReturnToLobby(sender, state);
           break;
       }
     } catch (e) {
@@ -147,6 +154,12 @@ export default class Server implements Party.Server {
     const state = (await this.room.storage.get<GameState>("gameState")) ?? null;
     if (state) {
       state.players = state.players.filter((p) => p.id !== connection.id);
+      if (state.phase === "gameover" && state.returnedAfterGameOver) {
+        state.returnedAfterGameOver = state.returnedAfterGameOver.filter(
+          (id) => id !== connection.id
+        );
+        await this.checkAllReturned(state);
+      }
       await this.room.storage.put("gameState", state);
       this.broadcastPlayers();
     }
@@ -158,6 +171,60 @@ export default class Server implements Party.Server {
     await this.room.storage.put("presences", presences);
     this.room.broadcast(
       JSON.stringify({ type: "presence", presences: Object.values(presences) })
+    );
+  }
+
+  private async handleReturnToLobby(
+    sender: Party.Connection,
+    state: GameState
+  ): Promise<void> {
+    if (state.phase !== "gameover") return;
+    if (!state.returnedAfterGameOver) state.returnedAfterGameOver = [];
+    if (state.returnedAfterGameOver.includes(sender.id)) return;
+    state.returnedAfterGameOver.push(sender.id);
+    await this.room.storage.put("gameState", state);
+    await this.checkAllReturned(state);
+  }
+
+  private async checkAllReturned(state: GameState): Promise<void> {
+    const connections = [...this.room.getConnections()];
+    const connectionIds = new Set(connections.map((c) => c.id));
+    const returned = new Set(state.returnedAfterGameOver ?? []);
+    const allReturned =
+      connectionIds.size > 0 &&
+      [...connectionIds].every((id) => returned.has(id));
+    if (allReturned) {
+      state.phase = "lobby";
+      state.returnedAfterGameOver = [];
+      state.files = [];
+      state.errors = [];
+      await this.room.storage.put("gameState", state);
+      this.room.broadcast(
+        JSON.stringify({ type: "state", state: { phase: "lobby", files: [], errors: [] } })
+      );
+    }
+  }
+
+  private async handleChat(
+    sender: Party.Connection,
+    msg: { text?: string }
+  ): Promise<void> {
+    const text = typeof msg.text === "string" ? msg.text.trim() : "";
+    if (!text) return;
+    const state = (await sender.state) as { player?: Player };
+    const senderName = state?.player?.name ?? "Player";
+    const chatMessage = {
+      id: `chat_${Date.now()}_${sender.id}`,
+      sender: senderName,
+      senderId: sender.id,
+      text,
+      time: new Date().toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    this.room.broadcast(
+      JSON.stringify({ type: "chat", message: chatMessage })
     );
   }
 
@@ -227,18 +294,26 @@ export default class Server implements Party.Server {
     if (!playerState?.player?.isHost || state.phase !== "lobby") return;
 
     const languages = state.languages.length ? state.languages : ["javascript"];
-    const files: FileContent[] = [];
+    const pool: FileContent[] = [];
     for (const lang of languages) {
       const templates = CODE_TEMPLATES[lang] ?? CODE_TEMPLATES["javascript"];
       if (templates) {
         for (const t of templates) {
-          files.push({ ...t });
+          pool.push({ ...t });
         }
       }
     }
-    if (files.length === 0) {
+    if (pool.length === 0) {
       const def = CODE_TEMPLATES["javascript"];
-      if (def) files.push(...def.map((f) => ({ ...f })));
+      if (def) pool.push(...def.map((f) => ({ ...f })));
+    }
+    const targetCount = 2 + Math.floor(Math.random() * 5);
+    const count = Math.min(pool.length, targetCount);
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    let files = shuffled.slice(0, count);
+    while (files.length < 2 && pool.length > 0) {
+      const src = pool[files.length % pool.length]!;
+      files.push({ ...src, name: `copy-${files.length}-${src.name}` });
     }
 
     state.phase = "playing";
@@ -286,7 +361,12 @@ export default class Server implements Party.Server {
     const file = state.files[fileIndex];
     if (!file) return;
 
-    const points = findInsertionPoints(file.content, file.language);
+    const linesWithErrorsInFile = new Set(
+      state.errors.filter((e) => e.file === file.name).map((e) => e.range.startLine)
+    );
+    const points = findInsertionPoints(file.content, file.language).filter(
+      (p) => !linesWithErrorsInFile.has(p.range.startLine)
+    );
     if (points.length === 0) return;
 
     const point = points[Math.floor(Math.random() * points.length)];
@@ -335,14 +415,13 @@ export default class Server implements Party.Server {
     const error = state.errors.find((e) => e.id === msg.errorId);
     if (!error) return;
 
-    const playerState = (await sender.state) as { player?: Player };
-    const player = playerState?.player;
-    if (!player) return;
+    const playerInState = state.players.find((p) => p.id === sender.id);
+    if (!playerInState) return;
 
     if (error.type === msg.guessedType) {
       state.errors = state.errors.filter((e) => e.id !== msg.errorId);
-      const award = 10;
-      player.currency += award;
+      const award = 1;
+      playerInState.currency += award;
 
       const file = state.files.find((f) => f.name === error.file);
       if (file && error.originalContent) {
@@ -366,26 +445,80 @@ export default class Server implements Party.Server {
 
   private async handleBuyPowerup(
     sender: Party.Connection,
-    msg: { powerupId: string },
+    msg: { powerupId: string; currentFile?: string },
     state: GameState
   ): Promise<void> {
-    const playerState = (await sender.state) as { player?: Player };
-    const player = playerState?.player;
-    if (!player || msg.powerupId !== "highlight_files") return;
+    const playerInState = state.players.find((p) => p.id === sender.id);
+    if (!playerInState) return;
 
-    const cost = 20;
-    if (player.currency < cost) return;
+    const powerupId = msg.powerupId;
 
-    player.currency -= cost;
-    await this.room.storage.put("gameState", state);
+    if (powerupId === "highlight_errors") {
+      const cost = 10;
+      if (playerInState.currency < cost) return;
+      const currentFile =
+        typeof msg.currentFile === "string" ? msg.currentFile.trim() : "";
+      if (!currentFile) return;
+      playerInState.currency -= cost;
+      await this.room.storage.put("gameState", state);
+      sender.send(
+        JSON.stringify({
+          type: "powerupResult",
+          powerupId: "highlight_errors",
+          data: { file: currentFile },
+          state: { players: state.players },
+        })
+      );
+      return;
+    }
 
-    const filesWithErrors = [...new Set(state.errors.map((e) => e.file))];
-    sender.send(
-      JSON.stringify({
-        type: "powerupResult",
-        powerupId: msg.powerupId,
-        data: { files: filesWithErrors },
-      })
-    );
+    if (powerupId === "find_errors") {
+      const cost = 5;
+      if (playerInState.currency < cost) return;
+      playerInState.currency -= cost;
+      await this.room.storage.put("gameState", state);
+      const counts: Record<string, number> = {};
+      for (const e of state.errors) {
+        counts[e.file] = (counts[e.file] ?? 0) + 1;
+      }
+      sender.send(
+        JSON.stringify({
+          type: "powerupResult",
+          powerupId: "find_errors",
+          data: { counts },
+          state: { players: state.players },
+        })
+      );
+      return;
+    }
+
+    if (powerupId === "auto_fix_one") {
+      const cost = 5;
+      if (playerInState.currency < cost) return;
+      if (state.errors.length === 0) return;
+      playerInState.currency -= cost;
+      const idx = Math.floor(Math.random() * state.errors.length);
+      const error = state.errors[idx];
+      if (!error) return;
+      state.errors = state.errors.filter((e) => e.id !== error.id);
+      const file = state.files.find((f) => f.name === error.file);
+      if (file && error.originalContent) {
+        file.content = error.originalContent;
+      }
+      await this.room.storage.put("gameState", state);
+      this.room.broadcast(
+        JSON.stringify({
+          type: "state",
+          state: {
+            files: state.files,
+            errors: state.errors,
+            players: state.players,
+          },
+        })
+      );
+      return;
+    }
+
+    return;
   }
 }

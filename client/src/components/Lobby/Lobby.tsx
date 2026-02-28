@@ -7,7 +7,12 @@ import { LobbyWaiting } from "./LobbyWaiting";
 export function Lobby() {
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const roomId = useGameStore((s) => s.roomId);
+  const myName = useGameStore((s) => s.myName);
+  const storeIsHost = useGameStore((s) => s.isHost);
+  const storeLanguages = useGameStore((s) => s.languages);
   const setRoomId = useGameStore((s) => s.setRoomId);
+  const setMyName = useGameStore((s) => s.setMyName);
+  const setIsHost = useGameStore((s) => s.setIsHost);
   const [hostOptions, setHostOptions] = useState<{
     languages: string[];
     hostName: string;
@@ -15,15 +20,18 @@ export function Lobby() {
   const [playerName, setPlayerName] = useState<string>("");
 
   if (roomId) {
+    const isHost = hostOptions ? mode === "create" : (storeIsHost ?? false);
     return (
       <LobbyWaiting
         roomId={roomId}
-        isHost={mode === "create"}
-        hostLanguages={hostOptions?.languages}
-        hostName={hostOptions?.hostName}
-        playerName={playerName}
+        isHost={isHost}
+        hostLanguages={hostOptions?.languages ?? (storeLanguages.length ? storeLanguages : undefined)}
+        hostName={hostOptions?.hostName ?? (isHost ? myName ?? undefined : undefined)}
+        playerName={hostOptions ? playerName : (isHost ? undefined : myName ?? undefined)}
         onLeave={() => {
           setRoomId(null);
+          setMyName(null);
+          setIsHost(null);
           setHostOptions(null);
           setPlayerName("");
         }}
@@ -36,6 +44,8 @@ export function Lobby() {
       <CreateLobby
         onJoined={(id, languages, hostName) => {
           setRoomId(id);
+          setMyName(hostName || "Host");
+          setIsHost(true);
           setHostOptions({ languages, hostName });
         }}
       />
@@ -47,6 +57,8 @@ export function Lobby() {
       <JoinLobby
         onJoined={(id, name) => {
           setRoomId(id);
+          setMyName(name);
+          setIsHost(false);
           setPlayerName(name);
         }}
       />

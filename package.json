@@ -1,0 +1,12 @@
+{
+  "name": "codenomaly",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n party,client -c blue,yellow \"npm run dev:party\" \"npm run dev:client\"",
+    "dev:party": "cd party && npm run dev",
+    "dev:client": "cd client && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
