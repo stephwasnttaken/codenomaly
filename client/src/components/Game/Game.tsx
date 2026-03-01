@@ -227,7 +227,7 @@ export function Game() {
         <div className="flex-1 flex flex-col min-w-0 relative">
           <CodeEditor
             fileContent={typeof currentFile.content === "string" ? currentFile.content : ""}
-            language={typeof currentFile.language === "string" ? currentFile.language : "javascript"}
+            language={typeof currentFile.language === "string" ? currentFile.language : "csharp"}
             fileName={typeof currentFile.name === "string" ? currentFile.name : ""}
             onCursorChange={handleCursorChange}
             onSelectLine={setSelectedLine}

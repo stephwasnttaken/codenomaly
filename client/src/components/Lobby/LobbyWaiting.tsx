@@ -29,7 +29,7 @@ export function LobbyWaiting({
   const { sendStartGame } = usePartyConnection(roomId, {
     name: isHost ? (hostName || "Host") : playerName || undefined,
     isHost,
-    languages: isHost ? hostLanguages ?? ["javascript"] : undefined,
+    languages: isHost ? hostLanguages ?? ["csharp"] : undefined,
   });
 
   const copyCode = useCallback(() => {

@@ -3,8 +3,8 @@ import { usePartyConnection } from "../../hooks/usePartyConnection";
 import { MAPS_BY_LANGUAGE } from "../../maps";
 
 const LANGUAGES = [
-  { id: "javascript", label: "JavaScript" },
-  { id: "typescript", label: "TypeScript" },
+  { id: "csharp", label: "C#" },
+  { id: "c", label: "C" },
   { id: "python", label: "Python" },
 ];
 
@@ -30,9 +30,9 @@ interface CreateLobbyProps {
 export function CreateLobby({ onBack, onJoined }: CreateLobbyProps) {
   const [lobbyCode, setLobbyCode] = useState<string | null>(null);
   const [hostName, setHostName] = useState("");
-  const [selectedLang, setSelectedLang] = useState<string>("javascript");
+  const [selectedLang, setSelectedLang] = useState<string>("csharp");
   const mapsForLang = useMemo(
-    () => MAPS_BY_LANGUAGE[selectedLang] ?? MAPS_BY_LANGUAGE.javascript,
+    () => MAPS_BY_LANGUAGE[selectedLang] ?? MAPS_BY_LANGUAGE.csharp,
     [selectedLang]
   );
   const [selectedMapId, setSelectedMapId] = useState<string>("calculator");
@@ -101,7 +101,7 @@ export function CreateLobby({ onBack, onJoined }: CreateLobbyProps) {
               type="button"
               onClick={() => {
                 setSelectedLang(lang.id);
-                const next = MAPS_BY_LANGUAGE[lang.id] ?? MAPS_BY_LANGUAGE.javascript;
+                const next = MAPS_BY_LANGUAGE[lang.id] ?? MAPS_BY_LANGUAGE.csharp;
                 if (next[0]) setSelectedMapId(next[0].id);
               }}
               className={`btn-pixel btn-pixel-sm flex-1 min-w-0 ${selectedLang === lang.id ? "btn-pixel-active" : ""}`}

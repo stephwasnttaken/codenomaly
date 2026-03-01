@@ -43,7 +43,7 @@ export function CodeEditor({
 
   const categories =
     ERROR_CATEGORIES_BY_LANGUAGE[language] ??
-    ERROR_CATEGORIES_BY_LANGUAGE.javascript;
+    ERROR_CATEGORIES_BY_LANGUAGE.csharp;
   const activeCategory = categories.find((c) => c.value === selectedCategory);
 
   const lineSelected = selectedLine !== null;
@@ -228,7 +228,7 @@ export function CodeEditor({
                       return err.file === fileName && sl <= selectedLine && el >= selectedLine;
                     }
                   );
-                  const first = lineErrors[0];
+                  const first = lineErrors.find((e) => e.type === causeValue) ?? lineErrors[0];
                   if (first?.id) {
                     onGuess(first.id, causeValue);
                     onSelectLine(null);

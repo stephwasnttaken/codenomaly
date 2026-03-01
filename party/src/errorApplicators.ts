@@ -54,13 +54,25 @@ export function applyError(
       return replaceInRange(code, range, swapped);
     }
     case "typo": {
-      // Introduce a typo in a common word
+      // Introduce a typo in a common word (JS/TS/C#/C/Python)
       const typoMap: Record<string, string> = {
         return: "retrun",
         function: "functoin",
         const: "cosnt",
         let: "elt",
         var: "avr",
+        void: "viod",
+        class: "calss",
+        int: "nit",
+        struct: "struc",
+        if: "fi",
+        else: "esle",
+        for: "fro",
+        while: "whlie",
+        namespace: "namesapce",
+        using: "usnig",
+        def: "edf",
+        interface: "inteface",
       };
       const lower = originalText.toLowerCase();
       for (const [correct, typo] of Object.entries(typoMap)) {
@@ -76,7 +88,15 @@ export function applyError(
       return code;
     }
     case "wrong_bracket": {
-      // Swap ( and ) or { and }
+      // Swap ( and ) or { and } or [ and ]
+      if (originalText === "{" || originalText === "}") {
+        const swapped = originalText === "{" ? "}" : "{";
+        return replaceInRange(code, range, swapped);
+      }
+      if (originalText === "[" || originalText === "]") {
+        const swapped = originalText === "[" ? "]" : "[";
+        return replaceInRange(code, range, swapped);
+      }
       const swapped = originalText
         .replace(/\(/g, "\x00")
         .replace(/\)/g, "(")
@@ -143,8 +163,8 @@ function replaceInRange(
 
 // Language-specific keyword maps for typo errors
 const TYPO_KEYWORDS_BY_LANG: Record<string, string[]> = {
-  javascript: ["return", "function", "const", "let", "var"],
-  typescript: ["return", "function", "const", "let", "var", "interface"],
+  csharp: ["return", "void", "class", "if", "else", "for", "while", "namespace", "using", "int", "struct"],
+  c: ["return", "void", "int", "if", "else", "for", "while", "struct"],
   python: ["return", "def", "if", "else", "elif", "for", "while", "class"],
 };
 
@@ -160,15 +180,16 @@ export function findInsertionPoints(
   }> = [];
   const lines = code.split("\n");
 
-  const isJsLike = language === "javascript" || language === "typescript";
+  const isSemicolonLang = language === "csharp" || language === "c";
   const isPython = language === "python";
+  const isCSharp = language === "csharp";
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line || line.trim().length === 0) continue;
 
-    // Semicolon removal (JS/TS only)
-    if (isJsLike && line.trimEnd().endsWith(";")) {
+    // Semicolon removal (C#, C)
+    if (isSemicolonLang && line.trimEnd().endsWith(";")) {
       const startCol = line.length - 1;
       points.push({
         range: {
@@ -180,6 +201,18 @@ export function findInsertionPoints(
         originalText: ";",
         allowedTypes: ["missing_semicolon"],
       });
+    }
+
+    // Missing colon (C#) - case X:, class A : B
+    if (isCSharp && (/\bcase\s+/.test(line) || /\bclass\s+\w+\s*:/.test(line))) {
+      const colonIdx = line.indexOf(":");
+      if (colonIdx >= 0) {
+        points.push({
+          range: { startLine: i, startColumn: colonIdx, endLine: i, endColumn: colonIdx + 1 },
+          originalText: ":",
+          allowedTypes: ["missing_colon"],
+        });
+      }
     }
 
     // Missing colon (Python only) - after def, if, else, elif, for, while, class
@@ -237,7 +270,7 @@ export function findInsertionPoints(
     }
 
     // Keywords for typo (language-specific)
-    const keywords = TYPO_KEYWORDS_BY_LANG[language] ?? TYPO_KEYWORDS_BY_LANG.javascript;
+    const keywords = TYPO_KEYWORDS_BY_LANG[language] ?? TYPO_KEYWORDS_BY_LANG.csharp;
     const kwPattern = new RegExp(`\\b(${keywords.join("|")})\\b`);
     const kwMatch = line.match(kwPattern);
     if (kwMatch) {
@@ -254,8 +287,8 @@ export function findInsertionPoints(
       });
     }
 
-    // Brackets (JS/TS - Python too for parens)
-    const parenMatch = line.match(/[()]/);
+    // Brackets (all languages - parens and braces)
+    const parenMatch = line.match(/[(){}\[\]]/);
     if (parenMatch) {
       const start = line.indexOf(parenMatch[0]);
       points.push({
@@ -270,8 +303,8 @@ export function findInsertionPoints(
       });
     }
 
-    // Wrong operator (JS/TS - Python has == too)
-    if ((isJsLike || isPython) && /[=+\-]/.test(line)) {
+    // Wrong operator (C#, C, Python)
+    if ((isSemicolonLang || isPython) && /[=+\-]/.test(line)) {
       const opMatch = line.match(/===|==|=|\+|-/);
       if (opMatch) {
         const start = line.indexOf(opMatch[0]);

@@ -85,7 +85,7 @@ export default class Server implements Party.Server {
     const url = new URL(ctx.request.url);
     const name = url.searchParams.get("name") ?? "Player";
     const isHost = url.searchParams.get("host") === "1";
-    const languagesParam = url.searchParams.get("languages") ?? "javascript";
+    const languagesParam = url.searchParams.get("languages") ?? "csharp";
     const languages = languagesParam.split(",").filter(Boolean);
 
     const player: Player = {
@@ -313,11 +313,15 @@ export default class Server implements Party.Server {
 
     const lang = state.languages[0] ?? "javascript";
     const mapId = typeof msg.mapId === "string" ? msg.mapId : undefined;
-    let files: FileContent[] =
-      getMapFiles(lang, mapId ?? "") ?? [];
+    const mapFiles = getMapFiles(lang, mapId ?? "") ?? [];
+    let files: FileContent[] = mapFiles.map((f) => ({
+      name: f.name,
+      content: f.content,
+      language: f.language,
+    }));
 
     if (files.length < 2) {
-      const templates = CODE_TEMPLATES[lang] ?? CODE_TEMPLATES["javascript"];
+      const templates = CODE_TEMPLATES[lang] ?? CODE_TEMPLATES["csharp"];
       if (templates?.length) {
         files = templates.slice(0, 3).map((t) => ({ ...t }));
       }
@@ -327,6 +331,7 @@ export default class Server implements Party.Server {
       }
     }
 
+    this.clearGameIntervals();
     state.phase = "playing";
     state.files = files;
     state.errors = [];
@@ -343,6 +348,7 @@ export default class Server implements Party.Server {
         state: {
           phase: "playing",
           files,
+          errors: state.errors,
           players: state.players,
           gameStartTime: state.gameStartTime,
         },
@@ -423,7 +429,13 @@ export default class Server implements Party.Server {
               (e) => (e.file || "").trim() === viewingFile
             ).length
           : 0;
-        if (errorsInFile === 0) continue;
+        if (errorsInFile === 0) {
+          if (viewingFile) {
+            player.stability = Math.min(100, currentStability + 1);
+            changed = true;
+          }
+          continue;
+        }
         const drain =
           STABILITY_DRAIN_PER_ERROR_PER_SEC * errorsInFile;
         const next = Math.max(0, currentStability - drain);
@@ -526,7 +538,8 @@ export default class Server implements Party.Server {
     msg: { errorId: string; guessedType: string },
     state: GameState
   ): Promise<void> {
-    const playerInState = state.players.find((p) => p.id === sender.id);
+    const freshState = (await this.room.storage.get<GameState>("gameState")) ?? state;
+    const playerInState = freshState.players.find((p) => p.id === sender.id);
     if (!playerInState) return;
     if (
       playerInState.glitchedUntil != null &&
@@ -534,28 +547,49 @@ export default class Server implements Party.Server {
     )
       return;
 
-    const error = state.errors.find((e) => e.id === msg.errorId);
-    if (!error) return;
+    const error = freshState.errors.find((e) => e.id === msg.errorId);
+    if (!error) {
+      sender.send(
+        JSON.stringify({ type: "guessErrorNotFound", state: { errors: freshState.errors } })
+      );
+      return;
+    }
 
-    if (error.type === msg.guessedType) {
-      state.errors = state.errors.filter((e) => e.id !== msg.errorId);
+    const guessedType = (typeof msg.guessedType === "string" ? msg.guessedType.trim() : "").toLowerCase();
+    const actualType = (typeof error.type === "string" ? error.type.trim() : "").toLowerCase();
+    if (actualType && guessedType && actualType === guessedType) {
+      freshState.errors = freshState.errors.filter((e) => e.id !== msg.errorId);
 
-      const file = state.files.find((f) => f.name === error.file);
+      const file = freshState.files.find((f) => f.name === error.file);
       if (file && error.originalContent) {
         file.content = error.originalContent;
       }
 
-      await this.room.storage.put("gameState", state);
+      const current = typeof playerInState.stability === "number" && !Number.isNaN(playerInState.stability)
+        ? playerInState.stability
+        : 100;
+      playerInState.stability = Math.min(100, current + 10);
+
+      await this.room.storage.put("gameState", freshState);
       this.room.broadcast(
         JSON.stringify({
           type: "errorCorrected",
           errorId: msg.errorId,
-          state: { files: state.files, errors: state.errors },
+          state: { files: freshState.files, errors: freshState.errors, players: freshState.players },
         })
       );
     } else {
+      const current = typeof playerInState.stability === "number" && !Number.isNaN(playerInState.stability)
+        ? playerInState.stability
+        : 100;
+      playerInState.stability = Math.max(0, current - 5);
+      await this.room.storage.put("gameState", freshState);
       this.room.broadcast(
-        JSON.stringify({ type: "guessWrong", errorId: msg.errorId })
+        JSON.stringify({
+          type: "guessWrong",
+          errorId: msg.errorId,
+          state: { players: freshState.players },
+        })
       );
     }
   }

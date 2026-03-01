@@ -86,10 +86,17 @@ export function usePartyConnection(
       try {
         const msg = JSON.parse(event.data as string);
         switch (msg.type) {
-          case "init":
-            updateState(msg.state);
+          case "init": {
+            const s = msg.state as Record<string, unknown> | undefined;
+            if (s && typeof s === "object") {
+              updateState({
+                ...s,
+                errors: Array.isArray(s.errors) ? s.errors : [],
+              });
+            }
             setCurrentPlayerId(msg.playerId ?? null);
             break;
+          }
           case "state":
             if (msg.state && typeof msg.state === "object") {
               const state = msg.state as Record<string, unknown>;
@@ -108,7 +115,11 @@ export function usePartyConnection(
                   }
                 }, 0);
               } else {
-                updateState(msg.state);
+                const payload: Record<string, unknown> = { ...state };
+                if (Object.prototype.hasOwnProperty.call(state, "errors")) {
+                  payload.errors = Array.isArray(state.errors) ? state.errors : [];
+                }
+                updateState(payload);
               }
             }
             break;
@@ -120,10 +131,16 @@ export function usePartyConnection(
             );
             break;
           case "errorSpawned":
-            if (msg.state) updateState(msg.state);
+            if (msg.state && typeof msg.state === "object") {
+              const st = msg.state as Record<string, unknown>;
+              updateState({ ...st, errors: Array.isArray(st.errors) ? st.errors : [] });
+            }
             break;
           case "errorCorrected":
-            if (msg.state) updateState(msg.state);
+            if (msg.state && typeof msg.state === "object") {
+              const st = msg.state as Record<string, unknown>;
+              updateState({ ...st, errors: Array.isArray(st.errors) ? st.errors : [] });
+            }
             break;
           case "gameOver":
             updateState({
@@ -137,9 +154,19 @@ export function usePartyConnection(
               addChatMessage(msg.message as import("../types").ChatMessage);
             }
             break;
+          case "guessWrong":
+            if (msg.state) updateState(msg.state);
+            break;
+          case "guessErrorNotFound":
+            if (msg.state && typeof msg.state === "object") {
+              const st = msg.state as Record<string, unknown>;
+              if (Object.prototype.hasOwnProperty.call(st, "errors")) {
+                updateState({ errors: Array.isArray(st.errors) ? st.errors : [] });
+              }
+            }
+            break;
           case "playerJoined":
           case "playerLeft":
-          case "guessWrong":
           case "error":
             updateState(msg);
             break;
