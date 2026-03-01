@@ -33,6 +33,7 @@ export function usePartyConnection(
     setCurrentPlayerId,
     setPresences,
     setSelectedFile,
+    setJoinError,
     connectionStatus,
   } = useGameStore();
 
@@ -173,8 +174,17 @@ export function usePartyConnection(
             break;
           case "playerJoined":
           case "playerLeft":
-          case "error":
             updateState(msg);
+            break;
+          case "error":
+            if (msg.code === "invalid_lobby") {
+              scheduleStoreUpdate(() => {
+                setJoinError("Invalid lobby code");
+                setConnectionStatus("disconnected");
+              });
+            } else {
+              updateState(msg);
+            }
             break;
           default:
             updateState(msg);
@@ -206,6 +216,8 @@ export function usePartyConnection(
     setConnectionStatus,
     setCurrentPlayerId,
     setPresences,
+    setSelectedFile,
+    setJoinError,
   ]);
 
   const sendPresence = useCallback(

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useGameStore } from "../../stores/gameStore";
 import { CreateLobby } from "./CreateLobby";
 import { JoinLobby } from "./JoinLobby";
@@ -7,18 +7,24 @@ import { LobbyWaiting } from "./LobbyWaiting";
 export function Lobby() {
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const roomId = useGameStore((s) => s.roomId);
+  const joinError = useGameStore((s) => s.joinError);
   const myName = useGameStore((s) => s.myName);
   const storeIsHost = useGameStore((s) => s.isHost);
   const storeLanguages = useGameStore((s) => s.languages);
   const setRoomId = useGameStore((s) => s.setRoomId);
   const setMyName = useGameStore((s) => s.setMyName);
   const setIsHost = useGameStore((s) => s.setIsHost);
+  const setJoinError = useGameStore((s) => s.setJoinError);
   const [hostOptions, setHostOptions] = useState<{
     languages: string[];
     hostName: string;
     mapId: string;
   } | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
+
+  useEffect(() => {
+    if (joinError && roomId) setRoomId(null);
+  }, [joinError, roomId, setRoomId]);
 
   if (roomId) {
     const isHost = hostOptions ? mode === "create" : (storeIsHost ?? false);
@@ -58,8 +64,13 @@ export function Lobby() {
   if (mode === "join") {
     return (
       <JoinLobby
-        onBack={() => setMode("choose")}
+        joinError={joinError}
+        onBack={() => {
+          setMode("choose");
+          setJoinError(null);
+        }}
         onJoined={(id, name) => {
+          setJoinError(null);
           setRoomId(id);
           setMyName(name);
           setIsHost(false);

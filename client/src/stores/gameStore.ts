@@ -17,6 +17,7 @@ interface GameStore extends GameState {
   selectedFile: string | null;
   connectionStatus: "disconnected" | "connecting" | "connected";
   chatMessages: import("../types").ChatMessage[];
+  joinError: string | null;
 
   // Actions
   setRoomId: (id: string | null) => void;
@@ -32,6 +33,7 @@ interface GameStore extends GameState {
   setPresences: (presences: Record<string, PlayerPresence>) => void;
   setFiles: (files: FileContent[]) => void;
   setErrors: (errors: CodeError[]) => void;
+  setJoinError: (message: string | null) => void;
   reset: () => void;
 }
 
@@ -53,6 +55,7 @@ const initialState = {
   selectedFile: null as string | null,
   connectionStatus: "disconnected" as GameStore["connectionStatus"],
   chatMessages: [] as import("../types").ChatMessage[],
+  joinError: null as string | null,
 };
 
 export const useGameStore = create<GameStore>((set) => ({
@@ -81,5 +84,6 @@ export const useGameStore = create<GameStore>((set) => ({
   setPresences: (presences) => set({ presences }),
   setFiles: (files) => set({ files }),
   setErrors: (errors) => set({ errors }),
+  setJoinError: (message) => set({ joinError: message }),
   reset: () => set(initialState),
 }));

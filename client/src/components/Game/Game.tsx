@@ -14,9 +14,20 @@ import { GamePopups, type GamePopupItem, type GamePopupType } from "./GamePopups
 import type { CodeError, FileContent, Player } from "../../types";
 
 const POPUP_TYPES: GamePopupType[] = ["rick", "hacked", "spider"];
-const POPUP_SLOTS = [15, 35, 55, 75, 90];
+const POPUP_SLOTS = [25, 40, 50, 60, 75];
 const POPUP_INTERVAL_MS = 7000;
 const POPUP_SPAWN_CHANCE = 0.25;
+/** Keep popup center within [margin, 100-margin] so the whole window (with close button) stays on screen */
+const POPUP_POSITION_MARGIN = 18;
+const clampPopupPosition = (value: number) =>
+  Math.max(POPUP_POSITION_MARGIN, Math.min(100 - POPUP_POSITION_MARGIN, value));
+
+const POPUP_SOUND_URL = "/erro.mp3";
+
+function playPopupSound(): void {
+  const audio = new Audio(POPUP_SOUND_URL);
+  audio.play().catch(() => {});
+}
 
 const glitchOptions = {
   playMode: "manual" as const,
@@ -158,13 +169,15 @@ export function Game() {
       const type = POPUP_TYPES[Math.floor(Math.random() * POPUP_TYPES.length)]!;
       const x = POPUP_SLOTS[Math.floor(Math.random() * POPUP_SLOTS.length)]!;
       const y = POPUP_SLOTS[Math.floor(Math.random() * POPUP_SLOTS.length)]!;
+      const jitter = (Math.random() - 0.5) * 6;
+      playPopupSound();
       setPopups((prev) => [
         ...prev,
         {
           id: `popup-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           type,
-          x: x + (Math.random() - 0.5) * 8,
-          y: y + (Math.random() - 0.5) * 8,
+          x: clampPopupPosition(x + jitter),
+          y: clampPopupPosition(y + jitter),
         },
       ]);
     }, POPUP_INTERVAL_MS);

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
 
 interface JoinLobbyProps {
+  joinError?: string | null;
   onBack: () => void;
   onJoined: (roomId: string, playerName: string) => void;
 }
 
-export function JoinLobby({ onBack, onJoined }: JoinLobbyProps) {
+export function JoinLobby({ joinError, onBack, onJoined }: JoinLobbyProps) {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -45,6 +46,11 @@ export function JoinLobby({ onBack, onJoined }: JoinLobbyProps) {
         </button>
         <h2 className="text-2xl font-bold text-white">Join</h2>
       </div>
+      {joinError && (
+        <p className="text-[var(--color-accent-red-bright)] text-sm" role="alert">
+          {joinError}
+        </p>
+      )}
       <div>
         <label className="block text-white/80 mb-2">Lobby code</label>
         <input

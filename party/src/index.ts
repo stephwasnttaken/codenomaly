@@ -98,7 +98,16 @@ export default class Server implements Party.Server {
 
     connection.setState({ player });
 
-    const state = (await this.room.storage.get<GameState>("gameState")) ?? {
+    const existingState = await this.room.storage.get<GameState>("gameState");
+    if (!isHost && existingState == null) {
+      connection.send(
+        JSON.stringify({ type: "error", code: "invalid_lobby", message: "Invalid lobby code" })
+      );
+      connection.close();
+      return;
+    }
+
+    const state = existingState ?? {
       phase: "lobby" as GamePhase,
       players: [],
       files: [],
@@ -162,7 +171,11 @@ export default class Server implements Party.Server {
   async onClose(connection: Party.Connection): Promise<void> {
     const state = (await this.room.storage.get<GameState>("gameState")) ?? null;
     if (state) {
+      const leavingPlayer = state.players.find((p) => p.id === connection.id);
       state.players = state.players.filter((p) => p.id !== connection.id);
+      if (leavingPlayer?.isHost && state.players.length > 0) {
+        state.players[0]!.isHost = true;
+      }
       if (state.phase === "gameover" && state.returnedAfterGameOver) {
         state.returnedAfterGameOver = state.returnedAfterGameOver.filter(
           (id) => id !== connection.id
