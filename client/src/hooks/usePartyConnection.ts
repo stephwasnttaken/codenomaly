@@ -32,6 +32,7 @@ export function usePartyConnection(
     setConnectionStatus,
     setCurrentPlayerId,
     setPresences,
+    setSelectedFile,
     connectionStatus,
   } = useGameStore();
 
@@ -67,8 +68,18 @@ export function usePartyConnection(
 
     socketRef.current = socket;
 
+    const scheduleStoreUpdate = (fn: () => void) => {
+      setTimeout(() => {
+        try {
+          fn();
+        } catch (e) {
+          console.error("Party connection store update failed:", e);
+        }
+      }, 0);
+    };
+
     socket.addEventListener("open", () => {
-      setConnectionStatus("connected");
+      scheduleStoreUpdate(() => setConnectionStatus("connected"));
     });
 
     socket.addEventListener("message", (event) => {
@@ -80,7 +91,26 @@ export function usePartyConnection(
             setCurrentPlayerId(msg.playerId ?? null);
             break;
           case "state":
-            updateState(msg.state);
+            if (msg.state && typeof msg.state === "object") {
+              const state = msg.state as Record<string, unknown>;
+              if (state.phase === "lobby") {
+                const payload = {
+                  phase: "lobby" as const,
+                  files: Array.isArray(state.files) ? state.files : [],
+                  errors: Array.isArray(state.errors) ? state.errors : [],
+                };
+                setTimeout(() => {
+                  try {
+                    updateState(payload);
+                    setSelectedFile(null);
+                  } catch (e) {
+                    console.error("Return to lobby state update failed:", e);
+                  }
+                }, 0);
+              } else {
+                updateState(msg.state);
+              }
+            }
             break;
           case "presence":
             setPresences(
@@ -122,11 +152,11 @@ export function usePartyConnection(
     });
 
     socket.addEventListener("close", () => {
-      setConnectionStatus("disconnected");
+      scheduleStoreUpdate(() => setConnectionStatus("disconnected"));
     });
 
     socket.addEventListener("error", () => {
-      setConnectionStatus("disconnected");
+      scheduleStoreUpdate(() => setConnectionStatus("disconnected"));
     });
 
     return () => {

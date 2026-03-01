@@ -15,7 +15,10 @@ html,
 body,
 #root {
   height: 100%;
+  width: 100%;
   margin: 0;
+  padding: 0;
+  overflow: hidden;
   font-family: var(--font-vcr);
   background-color: var(--color-bg);
   color: var(--color-text);

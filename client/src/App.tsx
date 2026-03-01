@@ -9,14 +9,18 @@ function App() {
   if (phase === "playing" || phase === "gameover") {
     return (
       <ErrorBoundary>
-        <Game />
+        <div className="h-screen w-screen overflow-hidden">
+          <Game />
+        </div>
       </ErrorBoundary>
     );
   }
 
   return (
     <ErrorBoundary>
-      <Lobby />
+      <div className="h-screen w-screen overflow-hidden">
+        <Lobby />
+      </div>
     </ErrorBoundary>
   );
 }

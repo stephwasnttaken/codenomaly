@@ -123,7 +123,7 @@ export function Game() {
   const mins = Math.floor(remainingSec / 60);
   const secs = remainingSec % 60;
   const timeDisplay = `${Number.isFinite(mins) ? mins : 5}:${String(Number.isFinite(secs) ? secs : 0).padStart(2, "0")}`;
-  const myPlayer = players.find((p: Player) => p.id === currentPlayerId);
+  const myPlayer = (Array.isArray(players) ? players : []).find((p: Player) => p.id === currentPlayerId);
   const rawStability = myPlayer?.stability;
   const stability =
     typeof rawStability === "number" && !Number.isNaN(rawStability)
@@ -134,10 +134,11 @@ export function Game() {
     stability <= 0 ||
     (typeof glitchedUntil === "number" && !Number.isNaN(glitchedUntil) && Date.now() < glitchedUntil);
 
+  const shouldGlitch = phase === "playing" && isGlitched;
   useEffect(() => {
-    if (isGlitched) glitch.startGlitch();
+    if (shouldGlitch) glitch.startGlitch();
     else glitch.stopGlitch();
-  }, [isGlitched, glitch]);
+  }, [shouldGlitch, glitch]);
 
   const fullScreenWrap = (content: ReactNode) => (
     <div ref={glitch.ref} className="game-fullscreen-glitch">

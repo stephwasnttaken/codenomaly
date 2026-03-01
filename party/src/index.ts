@@ -208,7 +208,15 @@ export default class Server implements Party.Server {
       state.errors = [];
       await this.room.storage.put("gameState", state);
       this.room.broadcast(
-        JSON.stringify({ type: "state", state: { phase: "lobby", files: [], errors: [] } })
+        JSON.stringify({
+          type: "state",
+          state: {
+            phase: "lobby",
+            files: [],
+            errors: [],
+            players: state.players,
+          },
+        })
       );
     }
   }

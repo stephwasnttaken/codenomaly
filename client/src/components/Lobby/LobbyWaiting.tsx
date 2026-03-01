@@ -23,7 +23,9 @@ export function LobbyWaiting({
   onLeave,
 }: LobbyWaitingProps) {
   const [copied, setCopied] = useState(false);
-  const { players, connectionStatus } = useGameStore();
+  const players = useGameStore((s) => s.players);
+  const connectionStatus = useGameStore((s) => s.connectionStatus);
+  const safePlayers = Array.isArray(players) ? players : [];
   const { sendStartGame } = usePartyConnection(roomId, {
     name: isHost ? (hostName || "Host") : playerName || undefined,
     isHost,
@@ -70,10 +72,10 @@ export function LobbyWaiting({
         </p>
         <h2 className="text-xl font-semibold text-white mb-4">Players</h2>
         <ul className="space-y-2 mb-6">
-          {players.length === 0 ? (
+          {safePlayers.length === 0 ? (
             <li className="text-white/60">Waiting for players...</li>
           ) : (
-            players.map((p: import("../../types").Player) => (
+            safePlayers.map((p: import("../../types").Player) => (
               <li key={p.id} className="text-white/90 flex items-center gap-2">
                 <span
                   className={`w-3 h-3 rounded-full ${
@@ -98,7 +100,7 @@ export function LobbyWaiting({
           {isHost && (
             <button
               onClick={() => sendStartGame(hostMapId)}
-              disabled={players.length < 1}
+              disabled={safePlayers.length < 1}
               className="flex-1 px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
             >
               Start Game

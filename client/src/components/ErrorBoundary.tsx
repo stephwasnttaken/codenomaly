@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { useGameStore } from "../stores/gameStore";
 
 interface Props {
   children: ReactNode;
@@ -18,6 +19,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("ErrorBoundary caught:", error, info.componentStack);
+    const phase = useGameStore.getState().phase;
+    if (phase === "gameover" || phase === "playing") {
+      useGameStore.getState().updateState({ phase: "lobby", files: [], errors: [] });
+      useGameStore.getState().setSelectedFile(null);
+      this.setState({ hasError: false });
+    }
   }
 
   render(): ReactNode {
