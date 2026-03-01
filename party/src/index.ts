@@ -34,8 +34,10 @@ interface CodeError {
     endColumn: number;
   };
   type: ErrorType;
-  /** Original content before error was applied (to restore on correct guess) */
+  /** Original content before this error was applied (to restore on correct guess) */
   originalContent?: string;
+  /** Text at range before error was applied (needed to re-apply other errors in same file) */
+  originalText?: string;
 }
 
 interface FileContent {
@@ -477,8 +479,16 @@ export default class Server implements Party.Server {
 
   private static readonly ERROR_SPAWN_BASE_MS = 15000;
   private static readonly ERROR_SPAWN_MIN_MS = 4000;
-  /** Extra seconds between spawns per additional player (after the first) */
-  private static readonly ERROR_SPAWN_EXTRA_MS_PER_PLAYER = 1500;
+  /** Reduce interval by this many ms per additional player (after the first) */
+  private static readonly ERROR_SPAWN_REDUCE_MS_PER_PLAYER = 1000;
+
+  private static errorSpawnDelayMs(playerCount: number): number {
+    const n = Math.max(1, playerCount);
+    return Math.max(
+      Server.ERROR_SPAWN_MIN_MS,
+      Server.ERROR_SPAWN_BASE_MS - (n - 1) * Server.ERROR_SPAWN_REDUCE_MS_PER_PLAYER
+    );
+  }
 
   private scheduleErrorSpawn(initialPlayerCount: number): void {
     const tick = async () => {
@@ -504,21 +514,10 @@ export default class Server implements Party.Server {
       }
       await this.spawnError(state);
       const playerCount = Math.max(1, state.players.length);
-      const baseDelay = Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount);
-      const extraMs = (playerCount - 1) * Server.ERROR_SPAWN_EXTRA_MS_PER_PLAYER;
-      const delay = Math.max(
-        Server.ERROR_SPAWN_MIN_MS,
-        baseDelay + extraMs
-      );
+      const delay = Server.errorSpawnDelayMs(playerCount);
       errorSpawnTimeout = setTimeout(tick, delay);
     };
-    const playerCount = Math.max(1, initialPlayerCount);
-    const baseDelay = Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount);
-    const extraMs = (playerCount - 1) * Server.ERROR_SPAWN_EXTRA_MS_PER_PLAYER;
-    const initialDelay = Math.max(
-      Server.ERROR_SPAWN_MIN_MS,
-      baseDelay + extraMs
-    );
+    const initialDelay = Server.errorSpawnDelayMs(initialPlayerCount);
     errorSpawnTimeout = setTimeout(tick, initialDelay);
   }
 
@@ -557,6 +556,7 @@ export default class Server implements Party.Server {
       range: point.range,
       type,
       originalContent: file.content,
+      originalText: point.originalText,
     };
 
     file.content = newContent;
@@ -602,8 +602,19 @@ export default class Server implements Party.Server {
       playerInState.errorsCaught = (playerInState.errorsCaught ?? 0) + 1;
 
       const file = freshState.files.find((f) => f.name === error.file);
-      if (file && error.originalContent) {
+      if (file && error.originalContent !== undefined) {
         file.content = error.originalContent;
+        const otherErrorsInFile = freshState.errors.filter(
+          (e) => e.file === error.file && e.originalText !== undefined
+        );
+        for (const other of otherErrorsInFile) {
+          file.content = applyError(
+            other.type as ErrorType,
+            file.content,
+            other.range,
+            other.originalText!
+          );
+        }
       }
 
       const current = typeof playerInState.stability === "number" && !Number.isNaN(playerInState.stability)

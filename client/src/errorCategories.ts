@@ -22,25 +22,25 @@ export const ERROR_CATEGORIES_BY_LANGUAGE: Record<
   csharp: [
     {
       value: "SyntaxError",
-      label: "SyntaxError",
+      label: "Syntax (structure / delimiters)",
       causes: [
         { value: "missing_semicolon", label: "Missing semicolon" },
         { value: "wrong_quotes", label: "Unclosed or mismatched string delimiter" },
         { value: "wrong_bracket", label: "Mismatched brackets or parentheses" },
         { value: "missing_colon", label: "Missing colon (case/class)" },
-        { value: "extra_char", label: "Unexpected token" },
+        { value: "extra_char", label: "Extra or unexpected character" },
       ],
     },
     {
       value: "ReferenceError",
-      label: "ReferenceError",
+      label: "Name / reference (wrong word)",
       causes: [
         { value: "typo", label: "Misspelled keyword or identifier" },
       ],
     },
     {
       value: "TypeError",
-      label: "TypeError",
+      label: "Type / operator",
       causes: [
         { value: "wrong_operator", label: "Incorrect comparison or operator" },
       ],
@@ -49,24 +49,24 @@ export const ERROR_CATEGORIES_BY_LANGUAGE: Record<
   c: [
     {
       value: "SyntaxError",
-      label: "SyntaxError",
+      label: "Syntax (structure / delimiters)",
       causes: [
         { value: "missing_semicolon", label: "Missing semicolon" },
         { value: "wrong_quotes", label: "Unclosed or mismatched string delimiter" },
         { value: "wrong_bracket", label: "Mismatched brackets or parentheses" },
-        { value: "extra_char", label: "Unexpected token" },
+        { value: "extra_char", label: "Extra or unexpected character" },
       ],
     },
     {
       value: "ReferenceError",
-      label: "ReferenceError",
+      label: "Name / reference (wrong word)",
       causes: [
         { value: "typo", label: "Misspelled keyword or identifier" },
       ],
     },
     {
       value: "TypeError",
-      label: "TypeError",
+      label: "Type / operator",
       causes: [
         { value: "wrong_operator", label: "Incorrect comparison or operator" },
       ],
@@ -75,25 +75,25 @@ export const ERROR_CATEGORIES_BY_LANGUAGE: Record<
   python: [
     {
       value: "SyntaxError",
-      label: "SyntaxError",
+      label: "Syntax (structure / delimiters)",
       causes: [
         { value: "missing_colon", label: "Missing colon after compound statement" },
         { value: "wrong_quotes", label: "Unclosed or mismatched string delimiter" },
         { value: "wrong_indentation", label: "Invalid indentation" },
         { value: "wrong_bracket", label: "Mismatched brackets or parentheses" },
-        { value: "extra_char", label: "Unexpected character" },
+        { value: "extra_char", label: "Extra or unexpected character" },
       ],
     },
     {
       value: "NameError",
-      label: "NameError",
+      label: "Name / reference (wrong word)",
       causes: [
         { value: "typo", label: "Misspelled keyword or identifier" },
       ],
     },
     {
       value: "TypeError",
-      label: "TypeError",
+      label: "Type / operator",
       causes: [
         { value: "wrong_operator", label: "Incorrect operator or comparison" },
       ],
