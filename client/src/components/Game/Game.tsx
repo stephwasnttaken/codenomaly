@@ -23,9 +23,15 @@ const clampPopupPosition = (value: number) =>
   Math.max(POPUP_POSITION_MARGIN, Math.min(100 - POPUP_POSITION_MARGIN, value));
 
 const POPUP_SOUND_URL = "/erro.mp3";
+const GLITCH_SOUND_URL = "/error-glitch.mp3";
 
 function playPopupSound(): void {
   const audio = new Audio(POPUP_SOUND_URL);
+  audio.play().catch(() => {});
+}
+
+function playGlitchSound(): void {
+  const audio = new Audio(GLITCH_SOUND_URL);
   audio.play().catch(() => {});
 }
 
@@ -154,9 +160,16 @@ export function Game() {
     (typeof glitchedUntil === "number" && !Number.isNaN(glitchedUntil) && Date.now() < glitchedUntil);
 
   const shouldGlitch = phase === "playing" && isGlitched;
+  const prevShouldGlitchRef = useRef(false);
   useEffect(() => {
-    if (shouldGlitch) glitch.startGlitch();
-    else glitch.stopGlitch();
+    if (shouldGlitch) {
+      if (!prevShouldGlitchRef.current) playGlitchSound();
+      prevShouldGlitchRef.current = true;
+      glitch.startGlitch();
+    } else {
+      prevShouldGlitchRef.current = false;
+      glitch.stopGlitch();
+    }
   }, [shouldGlitch, glitch]);
 
   useEffect(() => {
