@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 const GAME_DURATION_MS = 5 * 60 * 1000;
+import { useGlitch } from "react-powerglitch";
 import { useGameStore } from "../../stores/gameStore";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
 import { CodeEditor } from "../CodeEditor/CodeEditor";
@@ -10,7 +12,17 @@ import { StabilityMeter } from "./StabilityMeter";
 import { ChatPanel } from "./ChatPanel";
 import type { CodeError, FileContent, Player } from "../../types";
 
+const glitchOptions = {
+  playMode: "manual" as const,
+  glitchTimeSpan: { start: 0, end: 1 },
+  timing: { duration: 2000, iterations: Number.POSITIVE_INFINITY },
+  shake: { velocity: 18, amplitudeX: 0.25, amplitudeY: 0.25 },
+  slice: { count: 8, velocity: 18, minHeight: 0.02, maxHeight: 0.2, hueRotate: true },
+  pulse: false,
+};
+
 export function Game() {
+  const glitch = useGlitch(glitchOptions);
   const roomId = useGameStore((s) => s.roomId);
   const myName = useGameStore((s) => s.myName);
   const files = useGameStore((s) => s.files);
@@ -122,9 +134,22 @@ export function Game() {
     stability <= 0 ||
     (typeof glitchedUntil === "number" && !Number.isNaN(glitchedUntil) && Date.now() < glitchedUntil);
 
+  useEffect(() => {
+    if (isGlitched) glitch.startGlitch();
+    else glitch.stopGlitch();
+  }, [isGlitched, glitch]);
+
+  const fullScreenWrap = (content: ReactNode) => (
+    <div ref={glitch.ref} className="game-fullscreen-glitch">
+      <div className="game-fullscreen-inner">
+        {content}
+      </div>
+    </div>
+  );
+
   if (phase === "gameover") {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
+    return fullScreenWrap(
+      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6 w-full">
         <h1
           className={`text-3xl font-bold mb-4 ${
             win ? "text-green-500" : "text-red-500"
@@ -157,14 +182,14 @@ export function Game() {
   }
 
   if (!currentFile) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+    return fullScreenWrap(
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center w-full">
         <p className="text-gray-400">No files loaded. Waiting for game to start...</p>
       </div>
     );
   }
 
-  return (
+  return fullScreenWrap(
     <GameWindow
       leftSidebar={
         <div className="flex flex-col h-full min-h-0">

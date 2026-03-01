@@ -1,5 +1,31 @@
 @import "tailwindcss";
 
+/* Ensure full viewport so full-screen glitch wrapper fills and centers correctly */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+/* PowerGlitch ref goes here; inner div keeps layout so content is not forced to top */
+.game-fullscreen-glitch {
+  display: block;
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.game-fullscreen-inner {
+  height: 100%;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 /* Glitch overlay when stability hits 0 */
 .glitch-overlay {
   background: repeating-linear-gradient(
