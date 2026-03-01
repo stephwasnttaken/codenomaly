@@ -372,7 +372,7 @@ export default class Server implements Party.Server {
         },
       })
     );
-    this.scheduleErrorSpawn(state.players.length);
+    this.scheduleErrorSpawn();
     this.scheduleStabilityDrain();
     if (gameWinTimeout) clearTimeout(gameWinTimeout);
     gameWinTimeout = setTimeout(() => this.checkGameWin(), GAME_DURATION_MS);
@@ -477,20 +477,9 @@ export default class Server implements Party.Server {
     }, 1000);
   }
 
-  private static readonly ERROR_SPAWN_BASE_MS = 15000;
-  private static readonly ERROR_SPAWN_MIN_MS = 4000;
-  /** Reduce interval by this many ms per additional player (after the first) */
-  private static readonly ERROR_SPAWN_REDUCE_MS_PER_PLAYER = 1000;
+  private static readonly ERROR_SPAWN_INTERVAL_MS = 12000;
 
-  private static errorSpawnDelayMs(playerCount: number): number {
-    const n = Math.max(1, playerCount);
-    return Math.max(
-      Server.ERROR_SPAWN_MIN_MS,
-      Server.ERROR_SPAWN_BASE_MS - (n - 1) * Server.ERROR_SPAWN_REDUCE_MS_PER_PLAYER
-    );
-  }
-
-  private scheduleErrorSpawn(initialPlayerCount: number): void {
+  private scheduleErrorSpawn(): void {
     const tick = async () => {
       const state =
         (await this.room.storage.get<GameState>("gameState")) ?? null;
@@ -513,12 +502,9 @@ export default class Server implements Party.Server {
         return;
       }
       await this.spawnError(state);
-      const playerCount = Math.max(1, state.players.length);
-      const delay = Server.errorSpawnDelayMs(playerCount);
-      errorSpawnTimeout = setTimeout(tick, delay);
+      errorSpawnTimeout = setTimeout(tick, Server.ERROR_SPAWN_INTERVAL_MS);
     };
-    const initialDelay = Server.errorSpawnDelayMs(initialPlayerCount);
-    errorSpawnTimeout = setTimeout(tick, initialDelay);
+    errorSpawnTimeout = setTimeout(tick, Server.ERROR_SPAWN_INTERVAL_MS);
   }
 
   private async spawnError(state: GameState): Promise<void> {
