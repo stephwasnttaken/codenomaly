@@ -3,6 +3,7 @@
 A real-time browser multiplayer game inspired by "I'm On Observation Duty." Players find anomalies (errors) in code and guess their types before the bugs overwhelm the codebase. Work together, manage your stability, and survive 5 minutes to win.
 
 **Built by Stephen Mertyl, Naima Sana, Kira Archer, Marilyn Anderson**
+**Official Website: https://codenomaly.vercel.app/**
 
 ## Tech Stack
 
