@@ -16,9 +16,6 @@ interface GameStore extends GameState {
   currentPlayerId: string | null;
   selectedFile: string | null;
   connectionStatus: "disconnected" | "connecting" | "connected";
-  filesWithErrorsHint: string[]; // deprecated, kept for compatibility
-  highlightErrorsInFile: string | null; // file name when Highlight Errors powerup is active
-  errorCountByFile: Record<string, number> | null; // from Find Errors powerup
   chatMessages: import("../types").ChatMessage[];
 
   // Actions
@@ -28,15 +25,13 @@ interface GameStore extends GameState {
   setConnectionStatus: (status: GameStore["connectionStatus"]) => void;
   setCurrentPlayerId: (id: string | null) => void;
   setSelectedFile: (file: string | null) => void;
-  updateState: (state: Partial<GameState> & { filesWithErrorsHint?: string[] }) => void;
+  updateState: (state: Partial<GameState>) => void;
   addChatMessage: (msg: import("../types").ChatMessage) => void;
   setPhase: (phase: GamePhase) => void;
   setPlayers: (players: Player[]) => void;
   setPresences: (presences: Record<string, PlayerPresence>) => void;
   setFiles: (files: FileContent[]) => void;
   setErrors: (errors: CodeError[]) => void;
-  setHighlightErrorsInFile: (file: string | null) => void;
-  setErrorCountByFile: (counts: Record<string, number> | null) => void;
   reset: () => void;
 }
 
@@ -49,15 +44,14 @@ const initialState = {
   errors: [] as CodeError[],
   languages: [] as string[],
   errorThreshold: 5,
+  gameStartTime: undefined as number | undefined,
+  win: undefined as boolean | undefined,
   roomId: null as string | null,
   myName: null as string | null,
   isHost: null as boolean | null,
   currentPlayerId: null as string | null,
   selectedFile: null as string | null,
   connectionStatus: "disconnected" as GameStore["connectionStatus"],
-  filesWithErrorsHint: [] as string[],
-  highlightErrorsInFile: null as string | null,
-  errorCountByFile: null as Record<string, number> | null,
   chatMessages: [] as import("../types").ChatMessage[],
 };
 
@@ -87,8 +81,5 @@ export const useGameStore = create<GameStore>((set) => ({
   setPresences: (presences) => set({ presences }),
   setFiles: (files) => set({ files }),
   setErrors: (errors) => set({ errors }),
-  setHighlightErrorsInFile: (file) => set({ highlightErrorsInFile: file }),
-  setErrorCountByFile: (counts) => set({ errorCountByFile: counts }),
-
   reset: () => set(initialState),
 }));

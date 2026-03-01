@@ -8,6 +8,7 @@ interface LobbyWaitingProps {
   isHost: boolean;
   hostLanguages?: string[];
   hostName?: string;
+  hostMapId?: string;
   playerName?: string;
   onLeave: () => void;
 }
@@ -17,6 +18,7 @@ export function LobbyWaiting({
   isHost,
   hostLanguages,
   hostName,
+  hostMapId,
   playerName,
   onLeave,
 }: LobbyWaitingProps) {
@@ -95,7 +97,7 @@ export function LobbyWaiting({
           </button>
           {isHost && (
             <button
-              onClick={() => sendStartGame()}
+              onClick={() => sendStartGame(hostMapId)}
               disabled={players.length < 1}
               className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition"
             >

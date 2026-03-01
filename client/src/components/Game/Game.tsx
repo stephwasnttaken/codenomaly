@@ -1,11 +1,12 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+const GAME_DURATION_MS = 5 * 60 * 1000;
 import { useGameStore } from "../../stores/gameStore";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
 import { CodeEditor } from "../CodeEditor/CodeEditor";
 import { FileExplorer } from "../FileExplorer/FileExplorer";
 import { GameWindow } from "./GameWindow";
 import { PlayersPanel } from "./PlayersPanel";
-import { PowerupsPanel } from "./PowerupsPanel";
+import { StabilityMeter } from "./StabilityMeter";
 import { ChatPanel } from "./ChatPanel";
 import type { CodeError, FileContent, Player } from "../../types";
 
@@ -27,7 +28,6 @@ export function Game() {
   const {
     sendPresence,
     sendGuess,
-    sendBuyPowerup,
     sendSelectFile,
     sendChat,
     sendReturnToLobby,
@@ -55,7 +55,7 @@ export function Game() {
     if (name) {
       sendPresence(name, { line: 0, column: 0 });
     }
-  }, [selectedFile, sendPresence]);
+  }, [files, selectedFile, sendPresence]);
 
   const handleSelectFile = useCallback(
     (name: string) => {
@@ -93,13 +93,49 @@ export function Game() {
   );
 
   const [hasReturnedToLobby, setHasReturnedToLobby] = useState(false);
+  const win = useGameStore((s) => s.win);
+  const gameStartTime = useGameStore((s) => s.gameStartTime);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  useEffect(() => {
+    if (phase !== "playing" || gameStartTime == null || typeof gameStartTime !== "number") return;
+    const tick = () => {
+      const elapsed = Date.now() - gameStartTime;
+      setElapsedMs(Number.isFinite(elapsed) ? Math.min(elapsed, GAME_DURATION_MS) : 0);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [phase, gameStartTime]);
+  const remainingMs = GAME_DURATION_MS - (Number.isFinite(elapsedMs) ? elapsedMs : 0);
+  const remainingSec = Math.max(0, Math.min(300, Math.ceil(remainingMs / 1000)));
+  const mins = Math.floor(remainingSec / 60);
+  const secs = remainingSec % 60;
+  const timeDisplay = `${Number.isFinite(mins) ? mins : 5}:${String(Number.isFinite(secs) ? secs : 0).padStart(2, "0")}`;
+  const myPlayer = players.find((p: Player) => p.id === currentPlayerId);
+  const rawStability = myPlayer?.stability;
+  const stability =
+    typeof rawStability === "number" && !Number.isNaN(rawStability)
+      ? Math.max(0, Math.min(100, rawStability))
+      : 100;
+  const glitchedUntil = myPlayer?.glitchedUntil;
+  const isGlitched =
+    stability <= 0 ||
+    (typeof glitchedUntil === "number" && !Number.isNaN(glitchedUntil) && Date.now() < glitchedUntil);
 
   if (phase === "gameover") {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
-        <h1 className="text-3xl font-bold text-red-500 mb-4">Game Over</h1>
+        <h1
+          className={`text-3xl font-bold mb-4 ${
+            win ? "text-green-500" : "text-red-500"
+          }`}
+        >
+          {win ? "You survived!" : "Game Over"}
+        </h1>
         <p className="text-gray-400 mb-6 text-center">
-          Too many errors! The bugs overwhelmed the codebase.
+          {win
+            ? "You made it through 5 minutes. The codebase is safe."
+            : "Too many errors! The bugs overwhelmed the codebase."}
         </p>
         {!hasReturnedToLobby ? (
           <button
@@ -128,9 +164,6 @@ export function Game() {
     );
   }
 
-  const myCurrency =
-    players.find((p: Player) => p.id === currentPlayerId)?.currency ?? 0;
-
   return (
     <GameWindow
       leftSidebar={
@@ -138,7 +171,7 @@ export function Game() {
           <div className="flex-1 min-h-0 overflow-hidden">
             <PlayersPanel />
           </div>
-          <PowerupsPanel onBuyPowerup={sendBuyPowerup} />
+          <StabilityMeter stability={stability} isGlitched={isGlitched} />
         </div>
       }
       rightSidebar={<ChatPanel onSendChat={sendChat} />}
@@ -147,24 +180,33 @@ export function Game() {
         <h1 className="text-lg font-semibold text-white">Codenomaly</h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-400">
-            Errors: {errors.length} / 5
+            Errors: {Array.isArray(errors) ? errors.length : 0} / 5
           </span>
-          <span className="text-yellow-400 font-mono">${myCurrency}</span>
+          <span className="text-gray-400" title="Time remaining">
+            {timeDisplay}
+          </span>
         </div>
       </header>
-      <div className="flex-1 flex min-h-0">
+      <div className="flex-1 flex min-h-0 relative">
+        {isGlitched && (
+          <div
+            className="absolute inset-0 z-20 pointer-events-auto glitch-overlay"
+            aria-hidden
+          />
+        )}
         <FileExplorer onSelectFile={handleSelectFile} />
         <div className="flex-1 flex flex-col min-w-0 relative">
           <CodeEditor
-            fileContent={currentFile.content}
-            language={currentFile.language}
-            fileName={currentFile.name}
+            fileContent={typeof currentFile.content === "string" ? currentFile.content : ""}
+            language={typeof currentFile.language === "string" ? currentFile.language : "javascript"}
+            fileName={typeof currentFile.name === "string" ? currentFile.name : ""}
             onCursorChange={handleCursorChange}
             onSelectLine={setSelectedLine}
             selectedLine={selectedLine}
             onGuess={handleGuess}
-            presences={Object.values(presences)}
+            presences={presences && typeof presences === "object" ? Object.values(presences) : []}
             currentPlayerId={currentPlayerId}
+            disabled={isGlitched}
           />
         </div>
       </div>

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
+import { MAPS_BY_LANGUAGE } from "../../maps";
 
 const LANGUAGES = [
   { id: "javascript", label: "JavaScript" },
@@ -17,13 +18,29 @@ function generateLobbyCode(): string {
 }
 
 interface CreateLobbyProps {
-  onJoined: (roomId: string, languages: string[], hostName: string) => void;
+  onJoined: (
+    roomId: string,
+    languages: string[],
+    hostName: string,
+    mapId: string
+  ) => void;
 }
 
 export function CreateLobby({ onJoined }: CreateLobbyProps) {
   const [lobbyCode, setLobbyCode] = useState<string | null>(null);
   const [hostName, setHostName] = useState("");
   const [selectedLang, setSelectedLang] = useState<string>("javascript");
+  const mapsForLang = useMemo(
+    () => MAPS_BY_LANGUAGE[selectedLang] ?? MAPS_BY_LANGUAGE.javascript,
+    [selectedLang]
+  );
+  const [selectedMapId, setSelectedMapId] = useState<string>("calculator");
+
+  useEffect(() => {
+    if (mapsForLang.length > 0 && !mapsForLang.some((m) => m.id === selectedMapId)) {
+      setSelectedMapId(mapsForLang[0]!.id);
+    }
+  }, [mapsForLang, selectedMapId]);
 
   usePartyConnection(lobbyCode, {
     name: hostName.trim() || "Host",
@@ -34,7 +51,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
   const handleCreate = () => {
     const code = generateLobbyCode();
     setLobbyCode(code);
-    onJoined(code, [selectedLang], hostName.trim() || "Host");
+    onJoined(code, [selectedLang], hostName.trim() || "Host", selectedMapId);
   };
 
   if (lobbyCode) {
@@ -74,7 +91,11 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
             <button
               key={lang.id}
               type="button"
-              onClick={() => setSelectedLang(lang.id)}
+              onClick={() => {
+                setSelectedLang(lang.id);
+                const next = MAPS_BY_LANGUAGE[lang.id] ?? MAPS_BY_LANGUAGE.javascript;
+                if (next[0]) setSelectedMapId(next[0].id);
+              }}
               className={`px-4 py-2 rounded-lg border transition ${
                 selectedLang === lang.id
                   ? "bg-blue-600 border-blue-500 text-white"
@@ -82,6 +103,26 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
               }`}
             >
               {lang.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="text-gray-400 mb-2">Select map:</p>
+        <div className="space-y-3">
+          {mapsForLang.map((map) => (
+            <button
+              key={map.id}
+              type="button"
+              onClick={() => setSelectedMapId(map.id)}
+              className={`w-full text-left px-4 py-3 rounded-lg border transition ${
+                selectedMapId === map.id
+                  ? "bg-blue-600 border-blue-500 text-white"
+                  : "bg-gray-800 border-gray-600 text-gray-400 hover:border-gray-500"
+              }`}
+            >
+              <span className="font-medium block">{map.name}</span>
+              <span className="text-sm opacity-90 block mt-1">{map.description}</span>
             </button>
           ))}
         </div>

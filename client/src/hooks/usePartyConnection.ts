@@ -3,6 +3,16 @@ import PartySocket from "partysocket";
 import { useGameStore } from "../stores/gameStore";
 import type { ClientMessage, CursorPosition } from "../types";
 
+export interface UsePartyConnectionReturn {
+  connectionStatus: "disconnected" | "connecting" | "connected";
+  sendPresence: (file: string, cursor: CursorPosition) => void;
+  sendGuess: (errorId: string, guessedType: string) => void;
+  sendStartGame: (mapId?: string) => void;
+  sendSelectFile: (file: string) => void;
+  sendChat: (text: string) => void;
+  sendReturnToLobby: () => void;
+}
+
 // In dev with Vite proxy, use relative URL; otherwise use env or default
 const PARTY_HOST =
   import.meta.env.VITE_PARTY_HOST ||
@@ -15,15 +25,13 @@ export function usePartyConnection(
     isHost?: boolean;
     languages?: string[];
   }
-) {
+): UsePartyConnectionReturn {
   const {
     updateState,
     addChatMessage,
     setConnectionStatus,
     setCurrentPlayerId,
     setPresences,
-    setHighlightErrorsInFile,
-    setErrorCountByFile,
     connectionStatus,
   } = useGameStore();
 
@@ -70,28 +78,10 @@ export function usePartyConnection(
           case "init":
             updateState(msg.state);
             setCurrentPlayerId(msg.playerId ?? null);
-            if (msg.state?.phase === "playing") {
-              setHighlightErrorsInFile(null);
-              setErrorCountByFile(null);
-            }
             break;
-          case "state": {
-            const prevPhase = useGameStore.getState().phase;
+          case "state":
             updateState(msg.state);
-            if (prevPhase === "lobby" && msg.state?.phase === "playing") {
-              setHighlightErrorsInFile(null);
-              setErrorCountByFile(null);
-            }
-            if (msg.state?.errors && Array.isArray(msg.state.errors)) {
-              const counts: Record<string, number> = {};
-              for (const e of msg.state.errors as Array<{ file: string }>) {
-                counts[e.file] = (counts[e.file] ?? 0) + 1;
-              }
-              const hadCounts = useGameStore.getState().errorCountByFile != null;
-              if (hadCounts) setErrorCountByFile(counts);
-            }
             break;
-          }
           case "presence":
             setPresences(
               Object.fromEntries(
@@ -100,45 +90,21 @@ export function usePartyConnection(
             );
             break;
           case "errorSpawned":
-            if (msg.state) {
-              updateState(msg.state);
-              if (msg.state.errors && Array.isArray(msg.state.errors)) {
-                const counts: Record<string, number> = {};
-                for (const e of msg.state.errors as Array<{ file: string }>) {
-                  counts[e.file] = (counts[e.file] ?? 0) + 1;
-                }
-                if (useGameStore.getState().errorCountByFile != null)
-                  setErrorCountByFile(counts);
-              }
-            }
+            if (msg.state) updateState(msg.state);
             break;
           case "errorCorrected":
-            if (msg.state) {
-              updateState(msg.state);
-              if (msg.state.errors && Array.isArray(msg.state.errors)) {
-                const counts: Record<string, number> = {};
-                for (const e of msg.state.errors as Array<{ file: string }>) {
-                  counts[e.file] = (counts[e.file] ?? 0) + 1;
-                }
-                if (useGameStore.getState().errorCountByFile != null)
-                  setErrorCountByFile(counts);
-              }
-            }
+            if (msg.state) updateState(msg.state);
             break;
           case "gameOver":
-            updateState({ phase: "gameover" });
+            updateState({
+              phase: "gameover",
+              win: msg.won === true,
+            });
+            if (msg.state) updateState(msg.state);
             break;
           case "chat":
             if (msg.message && typeof msg.message === "object") {
               addChatMessage(msg.message as import("../types").ChatMessage);
-            }
-            break;
-          case "powerupResult":
-            if (msg.state) updateState(msg.state);
-            if (msg.powerupId === "highlight_errors" && msg.data?.file) {
-              setHighlightErrorsInFile(msg.data.file);
-            } else if (msg.powerupId === "find_errors" && msg.data?.counts) {
-              setErrorCountByFile(msg.data.counts as Record<string, number>);
             }
             break;
           case "playerJoined":
@@ -177,8 +143,6 @@ export function usePartyConnection(
     setConnectionStatus,
     setCurrentPlayerId,
     setPresences,
-    setHighlightErrorsInFile,
-    setErrorCountByFile,
   ]);
 
   const sendPresence = useCallback(
@@ -199,16 +163,12 @@ export function usePartyConnection(
     [send]
   );
 
-  const sendBuyPowerup = useCallback(
-    (powerupId: string, options?: { currentFile?: string }) => {
-      send({ type: "buy_powerup", powerupId, currentFile: options?.currentFile });
+  const sendStartGame = useCallback(
+    (mapId?: string) => {
+      send({ type: "start_game", mapId });
     },
     [send]
   );
-
-  const sendStartGame = useCallback(() => {
-    send({ type: "start_game" });
-  }, [send]);
 
   const sendSelectFile = useCallback(
     (file: string) => {
@@ -232,7 +192,6 @@ export function usePartyConnection(
     connectionStatus,
     sendPresence,
     sendGuess,
-    sendBuyPowerup,
     sendStartGame,
     sendSelectFile,
     sendChat,

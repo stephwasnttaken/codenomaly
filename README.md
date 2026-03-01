@@ -41,8 +41,8 @@ This starts PartyKit (port 1999) and the client (port 5173) together.
 
 3. **Play**:
    - Open http://localhost:5173
-   - Create a lobby (choose languages) or join with a 4-letter code
-   - Host starts the game when players are ready
+   - Create a lobby (choose language and map) or join with a 4-letter code
+   - Host starts the game
    - Find errors in the code, select them, and guess the error type
    - Earn currency to buy powerups (e.g., highlight files with errors)
    - Avoid letting 5+ errors accumulate (game over)

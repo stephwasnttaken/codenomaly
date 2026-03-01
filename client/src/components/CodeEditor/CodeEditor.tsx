@@ -15,6 +15,7 @@ interface CodeEditorProps {
   onGuess: (errorId: string, type: CodeError["type"]) => void;
   presences?: Array<{ id: string; name: string; file: string; cursor: { line: number; column: number }; color: string }>;
   currentPlayerId?: string | null;
+  disabled?: boolean;
 }
 
 export function CodeEditor({
@@ -27,9 +28,9 @@ export function CodeEditor({
   onGuess,
   presences = [],
   currentPlayerId,
+  disabled = false,
 }: CodeEditorProps) {
   const errors = useGameStore((s) => s.errors);
-  const highlightErrorsInFile = useGameStore((s) => s.highlightErrorsInFile);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
   const cursorDecorationIdsRef = useRef<string[]>([]);
@@ -61,23 +62,39 @@ export function CodeEditor({
     (ed: editor.IStandaloneCodeEditor) => {
       editorRef.current = ed;
       ed.onDidChangeCursorPosition((e) => {
-        onCursorChange(e.position.lineNumber - 1, e.position.column - 1);
+        try {
+          const pos = e?.position;
+          if (pos && Number.isFinite(pos.lineNumber) && Number.isFinite(pos.column)) {
+            onCursorChange(pos.lineNumber - 1, pos.column - 1);
+          }
+        } catch (err) {
+          console.error("onCursorChange error:", err);
+        }
       });
       ed.onDidChangeCursorSelection((e) => {
-        const sel = e.selection;
-        if (sel.startLineNumber !== sel.endLineNumber) {
-          onSelectLine(null);
-          return;
+        try {
+          const sel = e?.selection;
+          if (!sel || !Number.isFinite(sel.startLineNumber) || !Number.isFinite(sel.endLineNumber)) {
+            return;
+          }
+          if (sel.startLineNumber !== sel.endLineNumber) {
+            onSelectLine(null);
+            return;
+          }
+          const line0 = sel.startLineNumber - 1;
+          onSelectLine(line0);
+        } catch (err) {
+          console.error("onSelectLine error:", err);
         }
-        const line0 = sel.startLineNumber - 1;
-        onSelectLine(line0);
       });
     },
     [onCursorChange, onSelectLine]
   );
 
-  const fileErrors = errors.filter((e) => e.file === fileName);
-  const shouldHighlightErrors = highlightErrorsInFile === fileName;
+  const safeErrors = Array.isArray(errors) ? errors : [];
+  const fileErrors = safeErrors.filter(
+    (e) => e && typeof e.file === "string" && e.file === fileName && e.range
+  );
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -85,28 +102,35 @@ export function CodeEditor({
     const model = editor.getModel();
     if (!model) return;
 
-    const newDecorations: editor.IModelDeltaDecoration[] =
-      shouldHighlightErrors
-        ? fileErrors.map((err: CodeError) => ({
-            range: {
-              startLineNumber: err.range.startLine + 1,
-              startColumn: err.range.startColumn + 1,
-              endLineNumber: err.range.endLine + 1,
-              endColumn: err.range.endColumn + 1,
-            },
-            options: {
-              inlineClassName: "code-error-highlight",
-            },
-          }))
-        : [];
+    const newDecorations: editor.IModelDeltaDecoration[] = fileErrors.map(
+      (err: CodeError) => {
+        const r = err.range;
+        const sl = Number.isFinite(r?.startLine) ? r.startLine + 1 : 1;
+        const sc = Number.isFinite(r?.startColumn) ? r.startColumn + 1 : 1;
+        const el = Number.isFinite(r?.endLine) ? r.endLine + 1 : 1;
+        const ec = Number.isFinite(r?.endColumn) ? r.endColumn + 1 : 1;
+        return {
+          range: {
+            startLineNumber: sl,
+            startColumn: sc,
+            endLineNumber: el,
+            endColumn: ec,
+          },
+          options: {
+            inlineClassName: "code-error-highlight",
+          },
+        };
+      }
+    );
     decorationIdsRef.current = editor.deltaDecorations(
       decorationIdsRef.current,
       newDecorations
     );
-  }, [fileErrors, shouldHighlightErrors]);
+  }, [fileErrors]);
 
-  const othersOnThisFile = presences.filter(
-    (p) => p.id !== currentPlayerId && p.file === fileName
+  const presenceList = Array.isArray(presences) ? presences : [];
+  const othersOnThisFile = presenceList.filter(
+    (p) => p && p.id !== currentPlayerId && p.file === fileName && p.cursor
   );
 
   useEffect(() => {
@@ -116,18 +140,22 @@ export function CodeEditor({
     if (!model) return;
 
     const cursorDecorations: editor.IModelDeltaDecoration[] = othersOnThisFile.map(
-      (p) => ({
-        range: {
-          startLineNumber: p.cursor.line + 1,
-          startColumn: p.cursor.column + 1,
-          endLineNumber: p.cursor.line + 1,
-          endColumn: p.cursor.column + 1,
-        },
-        options: {
-          beforeContentInlineClassName: `remote-cursor remote-cursor-${p.id.replace(/[^a-zA-Z0-9]/g, "_")}`,
-          stickiness: 1,
-        },
-      })
+      (p) => {
+        const line = Number.isFinite(p.cursor?.line) ? p.cursor.line + 1 : 1;
+        const col = Number.isFinite(p.cursor?.column) ? p.cursor.column + 1 : 1;
+        return {
+          range: {
+            startLineNumber: line,
+            startColumn: col,
+            endLineNumber: line,
+            endColumn: col,
+          },
+          options: {
+            beforeContentInlineClassName: `remote-cursor remote-cursor-${String(p.id || "").replace(/[^a-zA-Z0-9]/g, "_")}`,
+            stickiness: 1,
+          },
+        };
+      }
     );
     cursorDecorationIdsRef.current = editor.deltaDecorations(
       cursorDecorationIdsRef.current,
@@ -159,16 +187,16 @@ export function CodeEditor({
             __html: othersOnThisFile
               .map(
                 (p) =>
-                  `.remote-cursor-${p.id.replace(/[^a-zA-Z0-9]/g, "_")} { --cursor-color: ${p.color} !important; }`
+                  `.remote-cursor-${String(p?.id ?? "").replace(/[^a-zA-Z0-9]/g, "_")} { --cursor-color: ${p?.color ?? "#888"} !important; }`
               )
               .join("\n"),
           }}
         />
       )}
-      {lineSelected && (
+      {lineSelected && !disabled && (
         <div className="flex items-center gap-3 p-2 bg-gray-800 border-b border-gray-700 shrink-0 flex-wrap">
           <span className="text-sm text-gray-400">
-            Line {selectedLine! + 1} — Identify error:
+            Line {(selectedLine != null && Number.isFinite(selectedLine) ? selectedLine : 0) + 1} — Identify error:
           </span>
           <select
             className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm"
@@ -191,14 +219,18 @@ export function CodeEditor({
               onChange={(e) => {
                 const causeValue = e.target.value as CodeError["type"];
                 if (causeValue) {
-                  const lineErrors = errors.filter(
-                    (err: CodeError) =>
-                      err.file === fileName &&
-                      err.range.startLine <= selectedLine! &&
-                      err.range.endLine >= selectedLine!
+                  const lineErrors = safeErrors.filter(
+                    (err: CodeError) => {
+                      const r = err?.range;
+                      if (!r || selectedLine == null) return false;
+                      const sl = Number.isFinite(r.startLine) ? r.startLine : 0;
+                      const el = Number.isFinite(r.endLine) ? r.endLine : 0;
+                      return err.file === fileName && sl <= selectedLine && el >= selectedLine;
+                    }
                   );
-                  if (lineErrors.length > 0) {
-                    onGuess(lineErrors[0]!.id, causeValue);
+                  const first = lineErrors[0];
+                  if (first?.id) {
+                    onGuess(first.id, causeValue);
                     onSelectLine(null);
                   } else {
                     setNoErrorMessage(true);
@@ -208,7 +240,7 @@ export function CodeEditor({
               }}
             >
               <option value="">Specific cause...</option>
-              {activeCategory.causes.map((cause) => (
+              {(activeCategory.causes ?? []).map((cause) => (
                 <option key={cause.value} value={cause.value}>
                   {cause.label}
                 </option>

@@ -16,6 +16,7 @@ export function Lobby() {
   const [hostOptions, setHostOptions] = useState<{
     languages: string[];
     hostName: string;
+    mapId: string;
   } | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
 
@@ -27,6 +28,7 @@ export function Lobby() {
         isHost={isHost}
         hostLanguages={hostOptions?.languages ?? (storeLanguages.length ? storeLanguages : undefined)}
         hostName={hostOptions?.hostName ?? (isHost ? myName ?? undefined : undefined)}
+        hostMapId={hostOptions?.mapId}
         playerName={hostOptions ? playerName : (isHost ? undefined : myName ?? undefined)}
         onLeave={() => {
           setRoomId(null);
@@ -42,11 +44,11 @@ export function Lobby() {
   if (mode === "create") {
     return (
       <CreateLobby
-        onJoined={(id, languages, hostName) => {
+        onJoined={(id, languages, hostName, mapId) => {
           setRoomId(id);
           setMyName(hostName || "Host");
           setIsHost(true);
-          setHostOptions({ languages, hostName });
+          setHostOptions({ languages, hostName, mapId: mapId ?? "calculator" });
         }}
       />
     );

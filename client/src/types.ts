@@ -18,7 +18,8 @@ export interface CursorPosition {
 export interface Player {
   id: string;
   name: string;
-  currency: number;
+  stability: number;
+  glitchedUntil?: number;
   isHost: boolean;
 }
 
@@ -59,6 +60,8 @@ export interface GameState {
   errors: CodeError[];
   languages: string[];
   errorThreshold: number;
+  gameStartTime?: number;
+  win?: boolean;
 }
 
 export interface ChatMessage {
@@ -72,8 +75,7 @@ export interface ChatMessage {
 export type ClientMessage =
   | { type: "presence"; file: string; cursor: CursorPosition }
   | { type: "guess"; errorId: string; guessedType: ErrorType }
-  | { type: "buy_powerup"; powerupId: string; currentFile?: string }
-  | { type: "start_game" }
+  | { type: "start_game"; mapId?: string }
   | { type: "select_file"; file: string }
   | { type: "chat"; text: string }
   | { type: "return_to_lobby" };

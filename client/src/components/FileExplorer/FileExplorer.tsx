@@ -7,7 +7,6 @@ interface FileExplorerProps {
 export function FileExplorer({ onSelectFile }: FileExplorerProps) {
   const files = useGameStore((s) => s.files);
   const selectedFile = useGameStore((s) => s.selectedFile);
-  const errorCountByFile = useGameStore((s) => s.errorCountByFile);
 
   if (files.length <= 1) return null;
 
@@ -17,29 +16,21 @@ export function FileExplorer({ onSelectFile }: FileExplorerProps) {
         Files
       </div>
       <ul className="flex-1 overflow-auto">
-        {files.map((file: import("../../types").FileContent) => {
-          const errorCount = errorCountByFile?.[file.name];
-          return (
-            <li key={file.name}>
-              <button
-                type="button"
-                onClick={() => onSelectFile(file.name)}
-                className={`w-full text-left px-3 py-2 text-sm truncate transition flex items-center justify-between gap-2 ${
-                  selectedFile === file.name
-                    ? "bg-gray-700 text-white"
-                    : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
-                }`}
-              >
-                <span className="truncate">{file.name}</span>
-                {errorCount !== undefined && errorCount !== null && (
-                  <span className="text-red-400 font-semibold shrink-0">
-                    {errorCount}
-                  </span>
-                )}
-              </button>
-            </li>
-          );
-        })}
+        {files.map((file: import("../../types").FileContent) => (
+          <li key={file.name}>
+            <button
+              type="button"
+              onClick={() => onSelectFile(file.name)}
+              className={`w-full text-left px-3 py-2 text-sm truncate transition ${
+                selectedFile === file.name
+                  ? "bg-gray-700 text-white"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+              }`}
+            >
+              {file.name}
+            </button>
+          </li>
+        ))}
       </ul>
     </div>
   );
