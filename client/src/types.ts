@@ -21,6 +21,7 @@ export interface Player {
   stability: number;
   glitchedUntil?: number;
   isHost: boolean;
+  errorsCaught?: number;
 }
 
 export interface PlayerPresence {

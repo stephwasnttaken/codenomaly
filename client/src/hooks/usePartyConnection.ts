@@ -105,15 +105,21 @@ export function usePartyConnection(
                   phase: "lobby" as const,
                   files: Array.isArray(state.files) ? state.files : [],
                   errors: Array.isArray(state.errors) ? state.errors : [],
+                  players: Array.isArray(state.players) ? state.players : [],
+                  selectedFile: null as string | null,
                 };
-                setTimeout(() => {
-                  try {
-                    updateState(payload);
-                    setSelectedFile(null);
-                  } catch (e) {
-                    console.error("Return to lobby state update failed:", e);
-                  }
-                }, 0);
+                // Defer so we're not in the socket callback; use rAF so the update runs after the current frame
+                const apply = () => {
+                  requestAnimationFrame(() => {
+                    try {
+                      updateState(payload);
+                      setSelectedFile(null);
+                    } catch (e) {
+                      console.error("Return to lobby state update failed:", e);
+                    }
+                  });
+                };
+                setTimeout(apply, 0);
               } else {
                 const payload: Record<string, unknown> = { ...state };
                 if (Object.prototype.hasOwnProperty.call(state, "errors")) {

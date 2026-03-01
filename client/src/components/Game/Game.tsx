@@ -10,7 +10,13 @@ import { GameWindow } from "./GameWindow";
 import { PlayersPanel } from "./PlayersPanel";
 import { StabilityMeter } from "./StabilityMeter";
 import { ChatPanel } from "./ChatPanel";
+import { GamePopups, type GamePopupItem, type GamePopupType } from "./GamePopups";
 import type { CodeError, FileContent, Player } from "../../types";
+
+const POPUP_TYPES: GamePopupType[] = ["rick", "hacked", "spider"];
+const POPUP_SLOTS = [15, 35, 55, 75, 90];
+const POPUP_INTERVAL_MS = 7000;
+const POPUP_SPAWN_CHANCE = 0.25;
 
 const glitchOptions = {
   playMode: "manual" as const,
@@ -36,6 +42,7 @@ export function Game() {
 
   const [selectedLine, setSelectedLine] = useState<number | null>(null);
   const [cursor, setCursor] = useState({ line: 0, column: 0 });
+  const [popups, setPopups] = useState<GamePopupItem[]>([]);
 
   const {
     sendPresence,
@@ -140,6 +147,30 @@ export function Game() {
     else glitch.stopGlitch();
   }, [shouldGlitch, glitch]);
 
+  useEffect(() => {
+    if (phase !== "playing") setPopups([]);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== "playing") return;
+    const id = setInterval(() => {
+      if (Math.random() >= POPUP_SPAWN_CHANCE) return;
+      const type = POPUP_TYPES[Math.floor(Math.random() * POPUP_TYPES.length)]!;
+      const x = POPUP_SLOTS[Math.floor(Math.random() * POPUP_SLOTS.length)]!;
+      const y = POPUP_SLOTS[Math.floor(Math.random() * POPUP_SLOTS.length)]!;
+      setPopups((prev) => [
+        ...prev,
+        {
+          id: `popup-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          type,
+          x: x + (Math.random() - 0.5) * 8,
+          y: y + (Math.random() - 0.5) * 8,
+        },
+      ]);
+    }, POPUP_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [phase]);
+
   const fullScreenWrap = (content: ReactNode) => (
     <div ref={glitch.ref} className="game-fullscreen-glitch">
       <div className="game-fullscreen-inner">
@@ -149,6 +180,9 @@ export function Game() {
   );
 
   if (phase === "gameover") {
+    const scoreboardPlayers = [...(Array.isArray(players) ? players : [])].sort(
+      (a, b) => (b.errorsCaught ?? 0) - (a.errorsCaught ?? 0)
+    );
     return fullScreenWrap(
       <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 w-full text-white">
         <h1
@@ -158,11 +192,37 @@ export function Game() {
         >
           {win ? "You survived!" : "Game Over"}
         </h1>
-        <p className="text-white/80 mb-6 text-center">
+        <p className="text-white/80 mb-4 text-center">
           {win
             ? "You made it through 5 minutes. The codebase is safe."
             : "Too many errors! The bugs overwhelmed the codebase."}
         </p>
+        {scoreboardPlayers.length > 0 && (
+          <div className="mb-6 w-full max-w-xs border border-white/30 rounded p-4 bg-black/50">
+            <h2 className="text-lg font-semibold text-white mb-3 text-center">
+              Scoreboard — Errors caught
+            </h2>
+            <ol className="space-y-2">
+              {scoreboardPlayers.map((p, i) => (
+                <li
+                  key={p.id}
+                  className="flex items-center justify-between text-white/90 text-sm"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="text-white/60 w-5">#{i + 1}</span>
+                    {p.isHost && (
+                      <span className="text-[var(--color-accent-red-bright)] text-xs">Host</span>
+                    )}
+                    {p.name}
+                  </span>
+                  <span className="tabular-nums" style={{ fontFamily: "var(--font-vcr)" }}>
+                    {p.errorsCaught ?? 0}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
         {!hasReturnedToLobby ? (
           <button
             type="button"
@@ -192,7 +252,9 @@ export function Game() {
   }
 
   return fullScreenWrap(
-    <GameWindow
+    <>
+      <GamePopups popups={popups} onClose={(id) => setPopups((p) => p.filter((x) => x.id !== id))} />
+      <GameWindow
       leftSidebar={
         <div className="flex flex-col h-full min-h-0">
           <div className="shrink-0 overflow-hidden">
@@ -240,5 +302,6 @@ export function Game() {
         </div>
       </div>
     </GameWindow>
+    </>
   );
 }

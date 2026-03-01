@@ -83,6 +83,33 @@ body,
   }
 }
 
+/* Windows 97-style popup windows (app colors: black, white, red) */
+.game-popup-window {
+  font-family: var(--font-vcr);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 0;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.5),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.game-popup-title {
+  background: var(--color-surface);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  min-height: 28px;
+}
+
+.game-popup-close {
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.game-popup-body {
+  background: var(--color-bg);
+}
+
 /* PowerGlitch ref goes here; inner div keeps layout so content is not forced to top */
 .game-fullscreen-glitch {
   display: block;

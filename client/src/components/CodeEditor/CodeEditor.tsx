@@ -5,6 +5,26 @@ import { useGameStore } from "../../stores/gameStore";
 import type { CodeError } from "../../types";
 import { ERROR_CATEGORIES_BY_LANGUAGE } from "../../errorCategories";
 
+const CODENOMALY_THEME = "codenomaly";
+
+function defineCodenomalyTheme(monaco: typeof import("monaco-editor")) {
+  monaco.editor.defineTheme(CODENOMALY_THEME, {
+    base: "vs-dark",
+    inherit: true,
+    rules: [],
+    colors: {
+      "editor.background": "#000000",
+      "editor.foreground": "#ffffff",
+      "editor.lineHighlightBackground": "#0a0a0a",
+      "editorLineNumber.foreground": "#6b6b6b",
+      "editorLineNumber.activeForeground": "#b22222",
+      "editorCursor.foreground": "#b22222",
+      "editor.selectionBackground": "#8b000040",
+      "editor.inactiveSelectionBackground": "#8b000020",
+    },
+  });
+}
+
 interface CodeEditorProps {
   fileContent: string;
   language: string;
@@ -194,12 +214,12 @@ export function CodeEditor({
         />
       )}
       {lineSelected && !disabled && (
-        <div className="flex items-center gap-3 p-2 bg-gray-800 border-b border-gray-700 shrink-0 flex-wrap">
-          <span className="text-sm text-gray-400">
+        <div className="flex items-center gap-3 p-2 bg-[var(--color-surface)] border-b border-white/20 shrink-0 flex-wrap">
+          <span className="text-sm text-white/80">
             Line {(selectedLine != null && Number.isFinite(selectedLine) ? selectedLine : 0) + 1} — Identify error:
           </span>
           <select
-            className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm"
+            className="bg-black text-white border border-white/20 px-3 py-1.5 rounded text-sm focus:outline-none focus:border-[var(--color-accent-red)]"
             value={selectedCategory}
             onChange={(e) => {
               setSelectedCategory(e.target.value);
@@ -214,7 +234,7 @@ export function CodeEditor({
           </select>
           {activeCategory && (
             <select
-              className="bg-gray-700 text-white px-3 py-1.5 rounded text-sm"
+              className="bg-black text-white border border-white/20 px-3 py-1.5 rounded text-sm focus:outline-none focus:border-[var(--color-accent-red)]"
               defaultValue=""
               onChange={(e) => {
                 const causeValue = e.target.value as CodeError["type"];
@@ -248,7 +268,7 @@ export function CodeEditor({
             </select>
           )}
           {noErrorMessage && (
-            <span className="text-sm text-amber-400">
+            <span className="text-sm text-[var(--color-accent-red-bright)]">
               No error on this line. Try another.
             </span>
           )}
@@ -258,7 +278,8 @@ export function CodeEditor({
         height="100%"
         language={language}
         value={fileContent}
-        theme="vs-dark"
+        theme={CODENOMALY_THEME}
+        beforeMount={defineCodenomalyTheme}
         options={{
           readOnly: true,
           minimap: { enabled: false },

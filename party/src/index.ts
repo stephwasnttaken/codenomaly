@@ -13,6 +13,7 @@ interface Player {
   stability: number;
   glitchedUntil?: number;
   isHost: boolean;
+  errorsCaught?: number;
 }
 
 interface PlayerPresence {
@@ -71,7 +72,7 @@ const GLITCH_DURATION_MS = 8000;
 const GLITCH_RECOVERY_STABILITY = 50;
 const GAME_DURATION_MS = 5 * 60 * 1000;
 
-let errorSpawnInterval: ReturnType<typeof setInterval> | null = null;
+let errorSpawnTimeout: ReturnType<typeof setTimeout> | null = null;
 let stabilityInterval: ReturnType<typeof setInterval> | null = null;
 let gameWinTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -340,6 +341,7 @@ export default class Server implements Party.Server {
     for (const p of state.players) {
       p.stability = 100;
       p.glitchedUntil = undefined;
+      p.errorsCaught = 0;
     }
     await this.room.storage.put("gameState", state);
     this.room.broadcast(
@@ -354,7 +356,7 @@ export default class Server implements Party.Server {
         },
       })
     );
-    this.scheduleErrorSpawn();
+    this.scheduleErrorSpawn(state.players.length);
     this.scheduleStabilityDrain();
     if (gameWinTimeout) clearTimeout(gameWinTimeout);
     gameWinTimeout = setTimeout(() => this.checkGameWin(), GAME_DURATION_MS);
@@ -371,14 +373,18 @@ export default class Server implements Party.Server {
     await this.room.storage.put("gameState", state);
     this.clearGameIntervals();
     this.room.broadcast(
-      JSON.stringify({ type: "gameOver", won: true, state: { phase: "gameover", win: true } })
+      JSON.stringify({
+        type: "gameOver",
+        won: true,
+        state: { phase: "gameover", win: true, players: state.players },
+      })
     );
   }
 
   private clearGameIntervals(): void {
-    if (errorSpawnInterval) {
-      clearInterval(errorSpawnInterval);
-      errorSpawnInterval = null;
+    if (errorSpawnTimeout) {
+      clearTimeout(errorSpawnTimeout);
+      errorSpawnTimeout = null;
     }
     if (stabilityInterval) {
       clearInterval(stabilityInterval);
@@ -455,9 +461,11 @@ export default class Server implements Party.Server {
     }, 1000);
   }
 
-  private scheduleErrorSpawn(): void {
-    if (errorSpawnInterval) clearInterval(errorSpawnInterval);
-    errorSpawnInterval = setInterval(async () => {
+  private static readonly ERROR_SPAWN_BASE_MS = 15000;
+  private static readonly ERROR_SPAWN_MIN_MS = 4000;
+
+  private scheduleErrorSpawn(initialPlayerCount: number): void {
+    const tick = async () => {
       const state =
         (await this.room.storage.get<GameState>("gameState")) ?? null;
       if (!state || state.phase !== "playing") {
@@ -473,13 +481,25 @@ export default class Server implements Party.Server {
           JSON.stringify({
             type: "gameOver",
             won: false,
-            state: { phase: "gameover", win: false },
+            state: { phase: "gameover", win: false, players: state.players },
           })
         );
         return;
       }
       await this.spawnError(state);
-    }, 15000);
+      const playerCount = Math.max(1, state.players.length);
+      const delay = Math.max(
+        Server.ERROR_SPAWN_MIN_MS,
+        Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount)
+      );
+      errorSpawnTimeout = setTimeout(tick, delay);
+    };
+    const playerCount = Math.max(1, initialPlayerCount);
+    const initialDelay = Math.max(
+      Server.ERROR_SPAWN_MIN_MS,
+      Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount)
+    );
+    errorSpawnTimeout = setTimeout(tick, initialDelay);
   }
 
   private async spawnError(state: GameState): Promise<void> {
@@ -559,6 +579,7 @@ export default class Server implements Party.Server {
     const actualType = (typeof error.type === "string" ? error.type.trim() : "").toLowerCase();
     if (actualType && guessedType && actualType === guessedType) {
       freshState.errors = freshState.errors.filter((e) => e.id !== msg.errorId);
+      playerInState.errorsCaught = (playerInState.errorsCaught ?? 0) + 1;
 
       const file = freshState.files.find((f) => f.name === error.file);
       if (file && error.originalContent) {

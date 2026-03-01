@@ -27,8 +27,20 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
+  componentDidUpdate(): void {
+    // Clear error state when we're in lobby so the boundary resets after return-to-lobby
+    if (this.state.hasError && useGameStore.getState().phase === "lobby") {
+      this.setState({ hasError: false });
+    }
+  }
+
   render(): ReactNode {
     if (this.state.hasError) {
+      // If we're already in lobby (e.g. return-to-lobby succeeded but something threw during unmount),
+      // show lobby instead of the error screen so the user doesn't see "Something went wrong".
+      if (useGameStore.getState().phase === "lobby") {
+        return this.props.children;
+      }
       if (this.props.fallback) return this.props.fallback;
       return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center text-white">
