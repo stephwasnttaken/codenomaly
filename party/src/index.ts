@@ -351,6 +351,7 @@ export default class Server implements Party.Server {
     state.errors = [];
     state.gameStartTime = Date.now();
     state.win = undefined;
+    state.errorThreshold = 5 + Math.max(0, state.players.length - 1);
     for (const p of state.players) {
       p.stability = 100;
       p.glitchedUntil = undefined;
@@ -476,6 +477,8 @@ export default class Server implements Party.Server {
 
   private static readonly ERROR_SPAWN_BASE_MS = 15000;
   private static readonly ERROR_SPAWN_MIN_MS = 4000;
+  /** Extra seconds between spawns per additional player (after the first) */
+  private static readonly ERROR_SPAWN_EXTRA_MS_PER_PLAYER = 1500;
 
   private scheduleErrorSpawn(initialPlayerCount: number): void {
     const tick = async () => {
@@ -501,16 +504,20 @@ export default class Server implements Party.Server {
       }
       await this.spawnError(state);
       const playerCount = Math.max(1, state.players.length);
+      const baseDelay = Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount);
+      const extraMs = (playerCount - 1) * Server.ERROR_SPAWN_EXTRA_MS_PER_PLAYER;
       const delay = Math.max(
         Server.ERROR_SPAWN_MIN_MS,
-        Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount)
+        baseDelay + extraMs
       );
       errorSpawnTimeout = setTimeout(tick, delay);
     };
     const playerCount = Math.max(1, initialPlayerCount);
+    const baseDelay = Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount);
+    const extraMs = (playerCount - 1) * Server.ERROR_SPAWN_EXTRA_MS_PER_PLAYER;
     const initialDelay = Math.max(
       Server.ERROR_SPAWN_MIN_MS,
-      Math.floor(Server.ERROR_SPAWN_BASE_MS / playerCount)
+      baseDelay + extraMs
     );
     errorSpawnTimeout = setTimeout(tick, initialDelay);
   }

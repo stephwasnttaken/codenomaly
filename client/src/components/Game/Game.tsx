@@ -46,6 +46,7 @@ export function Game() {
   const errors = useGameStore((s) => s.errors);
   const phase = useGameStore((s) => s.phase);
   const players = useGameStore((s) => s.players);
+  const errorThreshold = useGameStore((s) => s.errorThreshold);
   const currentPlayerId = useGameStore((s) => s.currentPlayerId);
   const presences = useGameStore((s) => s.presences);
   const setSelectedFile = useGameStore((s) => s.setSelectedFile);
@@ -285,7 +286,7 @@ export function Game() {
         <h1 className="text-lg font-semibold text-white">Codenomaly</h1>
         <div className="flex items-center gap-4">
           <span className="text-white/80">
-            Errors: {Array.isArray(errors) ? errors.length : 0} / 5
+            Errors: {Array.isArray(errors) ? errors.length : 0} / {typeof errorThreshold === "number" && errorThreshold > 0 ? errorThreshold : 5}
           </span>
           <span className="text-white/80" title="Time remaining">
             {timeDisplay}

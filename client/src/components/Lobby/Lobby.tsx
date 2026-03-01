@@ -21,6 +21,7 @@ export function Lobby() {
     mapId: string;
   } | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   useEffect(() => {
     if (joinError && roomId) setRoomId(null);
@@ -80,6 +81,46 @@ export function Lobby() {
     );
   }
 
+  if (showHowToPlay) {
+    return (
+      <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+        <div className="border-2 border-white rounded-none box-border flex flex-col w-[min(90vw,520px)] max-h-[85vh] p-6 md:p-8 bg-black">
+          <div className="flex items-center justify-between mb-4 shrink-0">
+            <h2 className="text-xl font-bold text-white">How to Play</h2>
+            <button
+              type="button"
+              onClick={() => setShowHowToPlay(false)}
+              className="btn-pixel btn-pixel-sm"
+              aria-label="Close"
+            >
+              Close
+            </button>
+          </div>
+          <div className="flex flex-col gap-5 overflow-y-auto text-white/90 text-sm space-y-1">
+            <section>
+              <h3 className="text-white font-semibold mb-2">Selecting and fixing errors</h3>
+              <p className="mb-1">
+                Click a line in the code editor to select it. A dropdown appears above the editor — choose the error type (e.g. missing semicolon, typo) and the specific cause, then pick the matching option. A correct guess removes the error and increases your stability; a wrong guess reduces it.
+              </p>
+            </section>
+            <section>
+              <h3 className="text-white font-semibold mb-2">Stability</h3>
+              <p className="mb-1">
+                Your stability meter (0–100%) is shown on the left. It goes down over time when you view files that contain errors, and goes up when you view files with no errors or when you fix an error correctly. If stability reaches 0%, your screen glitches for several seconds and you recover to 50%. Survive 5 minutes to win.
+              </p>
+            </section>
+            <section>
+              <h3 className="text-white font-semibold mb-2">Popups</h3>
+              <p className="mb-1">
+                During the game, random popup windows may appear. Close them by clicking the X in the top-right corner so you can keep playing. Don’t let them distract you for too long.
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
       <div className="border-2 border-white rounded-none box-border flex flex-col items-center justify-center aspect-square w-[min(90vw,680px)] p-10 md:p-12">
@@ -106,6 +147,13 @@ export function Lobby() {
               className="btn-pixel btn-pixel-lg"
             >
               Join
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowHowToPlay(true)}
+              className="btn-pixel btn-pixel-lg"
+            >
+              How to Play
             </button>
           </div>
         </div>
