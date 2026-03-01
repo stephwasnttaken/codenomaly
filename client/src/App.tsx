@@ -2,6 +2,7 @@ import { useGameStore } from "./stores/gameStore";
 import { Lobby } from "./components/Lobby/Lobby";
 import { Game } from "./components/Game/Game";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { MatrixBackground } from "./components/MatrixBackground/MatrixBackground";
 
 function App() {
   const phase = useGameStore((s) => s.phase);
@@ -9,8 +10,11 @@ function App() {
   if (phase === "playing" || phase === "gameover") {
     return (
       <ErrorBoundary>
-        <div className="h-screen w-screen overflow-hidden">
-          <Game />
+        <div className="h-screen w-screen overflow-hidden relative">
+          <MatrixBackground />
+          <div className="relative z-10 h-full w-full">
+            <Game />
+          </div>
         </div>
       </ErrorBoundary>
     );
@@ -18,8 +22,11 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <div className="h-screen w-screen overflow-hidden">
-        <Lobby />
+      <div className="h-screen w-screen overflow-hidden relative">
+        <MatrixBackground />
+        <div className="relative z-10 h-full w-full">
+          <Lobby />
+        </div>
       </div>
     </ErrorBoundary>
   );

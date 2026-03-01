@@ -70,7 +70,7 @@ export function Lobby() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
       <div className="border-2 border-white rounded-none box-border flex flex-col items-center justify-center aspect-square w-[min(90vw,680px)] p-10 md:p-12">
         <div className="flex flex-col items-center scale-105">
           <img
