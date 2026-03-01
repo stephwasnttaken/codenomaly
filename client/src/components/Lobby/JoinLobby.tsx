@@ -22,8 +22,8 @@ export function JoinLobby({ onJoined }: JoinLobbyProps) {
 
   if (roomId) {
     return (
-      <div className="flex flex-col items-center gap-4 p-8">
-        <p className="text-lg text-gray-300">Connecting to {roomId}...</p>
+      <div className="flex flex-col items-center gap-4 p-8 bg-black min-h-screen text-white">
+        <p className="text-lg text-white/80">Connecting to {roomId}...</p>
       </div>
     );
   }
@@ -31,35 +31,35 @@ export function JoinLobby({ onJoined }: JoinLobbyProps) {
   return (
     <form
       onSubmit={handleJoin}
-      className="flex flex-col gap-6 max-w-md mx-auto p-8"
+      className="flex flex-col gap-6 max-w-md mx-auto p-8 bg-black min-h-screen text-white"
     >
       <h2 className="text-2xl font-bold text-white">Join Lobby</h2>
       <div>
-        <label className="block text-gray-400 mb-2">Lobby code</label>
+        <label className="block text-white/80 mb-2">Lobby code</label>
         <input
           type="text"
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase().slice(0, 4))}
           placeholder="ABCD"
           maxLength={4}
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white font-mono text-xl tracking-widest uppercase"
+          className="w-full px-4 py-3 bg-[var(--color-surface)] border border-white/20 rounded-lg text-white text-xl tracking-widest uppercase focus:outline-none focus:border-[var(--color-accent-red)]"
         />
       </div>
       <div>
-        <label className="block text-gray-400 mb-2">Your name</label>
+        <label className="block text-white/80 mb-2">Your name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Player name"
           maxLength={20}
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white"
+          className="w-full px-4 py-3 bg-[var(--color-surface)] border border-white/20 rounded-lg text-white focus:outline-none focus:border-[var(--color-accent-red)]"
         />
       </div>
       <button
         type="submit"
         disabled={code.trim().length !== 4 || !name.trim()}
-        className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition"
+        className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
       >
         Join
       </button>

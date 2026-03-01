@@ -24,40 +24,40 @@ export function ChatPanel({ onSendChat }: ChatPanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-2 border-b border-amber-800/50">
-        <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+      <div className="p-2 border-b border-white/20">
+        <h3 className="text-xs font-bold text-white/80 uppercase tracking-wider">
           Chat
         </h3>
       </div>
       <div className="flex-1 overflow-auto p-2 min-h-0">
         {chatMessages.length === 0 ? (
-          <p className="text-sm text-amber-800/80 italic">No messages yet...</p>
+          <p className="text-sm text-white/60 italic">No messages yet...</p>
         ) : (
           <ul className="space-y-2">
             {chatMessages.map((m: ChatMessage) => (
               <li key={m.id} className="text-sm">
-                <span className="font-medium text-amber-900">{m.sender}:</span>{" "}
-                <span className="text-amber-950">{m.text}</span>
-                <span className="ml-1 text-xs text-amber-600">{m.time}</span>
+                <span className="font-medium text-white">{m.sender}:</span>{" "}
+                <span className="text-white/90">{m.text}</span>
+                <span className="ml-1 text-xs text-white/60">{m.time}</span>
               </li>
             ))}
           </ul>
         )}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-2 border-t border-amber-800/50 flex gap-2">
+      <div className="p-2 border-t border-white/20 flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder="Type..."
-          className="flex-1 px-3 py-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-950 placeholder:text-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+          className="flex-1 px-3 py-2 bg-black border border-white/20 rounded text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-[var(--color-accent-red)]"
         />
         <button
           type="button"
           onClick={handleSend}
-          className="p-2 bg-amber-600 hover:bg-amber-500 text-white rounded text-sm font-medium transition"
+          className="p-2 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white rounded text-sm font-medium transition border border-white/20"
           aria-label="Send message"
           title="Send"
         >

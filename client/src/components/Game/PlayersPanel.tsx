@@ -15,8 +15,8 @@ export function PlayersPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-2 border-b border-amber-800/50">
-        <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+      <div className="p-2 border-b border-white/20">
+        <h3 className="text-xs font-bold text-white/80 uppercase tracking-wider">
           Players
         </h3>
       </div>
@@ -32,18 +32,18 @@ export function PlayersPanel() {
             <li key={p.id} className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span
-                  className="w-3 h-3 rounded-sm shrink-0 border border-amber-900/30"
+                  className="w-3 h-3 rounded-sm shrink-0 border border-white/30"
                   style={{ backgroundColor: color }}
                 />
-                <span className="text-sm font-medium text-amber-950 truncate" title={p.name || displayName}>
+                <span className="text-sm font-medium text-white truncate" title={p.name || displayName}>
                   {displayName}
                   {isYou && displayName !== "You" && (
-                    <span className="ml-1 text-xs text-amber-700">(You)</span>
+                    <span className="ml-1 text-xs text-white/70">(You)</span>
                   )}
                 </span>
               </div>
               {currentFile && (
-                <div className="pl-5 text-xs text-amber-800 truncate" title={currentFile}>
+                <div className="pl-5 text-xs text-white/70 truncate" title={currentFile}>
                   Viewing: {currentFile}
                 </div>
               )}

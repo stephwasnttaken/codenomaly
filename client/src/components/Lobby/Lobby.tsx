@@ -68,21 +68,25 @@ export function Lobby() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold text-white mb-12">Codenomaly</h1>
-      <p className="text-gray-400 mb-8">
+    <div className="min-h-screen bg-black flex flex-col items-center pt-12 pb-12">
+      <img
+        src="/codenomaly-title.png"
+        alt="Codenomaly"
+        className="w-full max-w-md mx-auto mb-12 object-contain pixel-art-title"
+      />
+      <p className="text-white/80 mb-8 text-center px-4">
         Find errors in code. Work together. Don&apos;t let the bugs pile up.
       </p>
-      <div className="flex gap-4">
+      <div className="flex gap-4 flex-wrap justify-center">
         <button
           onClick={() => setMode("create")}
-          className="px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition"
+          className="px-8 py-4 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white font-semibold rounded-lg transition border border-white/20"
         >
           Create Lobby
         </button>
         <button
           onClick={() => setMode("join")}
-          className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition"
+          className="px-8 py-4 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white font-semibold rounded-lg transition border border-white/20"
         >
           Join Lobby
         </button>

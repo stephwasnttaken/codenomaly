@@ -56,16 +56,12 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
 
   if (lobbyCode) {
     return (
-      <div className="flex flex-col items-center gap-4 p-8">
-        <p className="text-lg text-gray-300">
-          Share this code with players:
-        </p>
-        <p className="text-4xl font-mono font-bold tracking-widest text-white">
+      <div className="flex flex-col items-center gap-4 p-8 bg-black min-h-screen text-white">
+        <p className="text-lg text-white/80">Share this code with players:</p>
+        <p className="text-4xl font-bold tracking-widest text-white">
           {lobbyCode}
         </p>
-        <p className="text-sm text-gray-500">
-          Waiting for players to join...
-        </p>
+        <p className="text-sm text-white/60">Waiting for players to join...</p>
       </div>
     );
   }
@@ -74,14 +70,14 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
     <div className="flex flex-col gap-6 max-w-md mx-auto p-8">
       <h2 className="text-2xl font-bold text-white">Create Lobby</h2>
       <div>
-        <label className="block text-gray-400 mb-2">Your name</label>
+        <label className="block text-white/80 mb-2">Your name</label>
         <input
           type="text"
           value={hostName}
           onChange={(e) => setHostName(e.target.value)}
           placeholder="Host name"
           maxLength={20}
-          className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white mb-4"
+          className="w-full px-4 py-3 bg-[var(--color-surface)] border border-white/20 rounded-lg text-white mb-4 focus:outline-none focus:border-[var(--color-accent-red)]"
         />
       </div>
       <div>
@@ -108,7 +104,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
         </div>
       </div>
       <div>
-        <p className="text-gray-400 mb-2">Select map:</p>
+        <p className="text-white/80 mb-2">Select map:</p>
         <div className="space-y-3">
           {mapsForLang.map((map) => (
             <button
@@ -117,8 +113,8 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
               onClick={() => setSelectedMapId(map.id)}
               className={`w-full text-left px-4 py-3 rounded-lg border transition ${
                 selectedMapId === map.id
-                  ? "bg-blue-600 border-blue-500 text-white"
-                  : "bg-gray-800 border-gray-600 text-gray-400 hover:border-gray-500"
+                  ? "bg-[var(--color-accent-red)] border-white/30 text-white"
+                  : "bg-[var(--color-surface)] border-white/20 text-white/80 hover:border-white/40"
               }`}
             >
               <span className="font-medium block">{map.name}</span>
@@ -130,7 +126,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
       <button
         onClick={handleCreate}
         disabled={!hostName.trim()}
-        className="px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition"
+        className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
       >
         Create Lobby
       </button>

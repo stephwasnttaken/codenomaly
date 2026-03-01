@@ -38,30 +38,30 @@ export function LobbyWaiting({
   }, [roomId]);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-8">
-      <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full">
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-8 text-white">
+      <div className="bg-[var(--color-surface)] border border-white/20 rounded-xl p-8 max-w-md w-full">
         <div className="flex items-center gap-2 mb-2">
-          <p className="text-gray-400 text-sm">
+          <p className="text-white/80 text-sm">
             Lobby code:{" "}
-            <span className="font-mono font-bold text-white">{roomId}</span>
+            <span className="font-bold text-white">{roomId}</span>
           </p>
           <button
             type="button"
             onClick={copyCode}
             title="Copy code"
-            className="p-1.5 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
           >
             <FiCopy className="w-4 h-4" aria-hidden />
           </button>
           {copied && (
-            <span className="text-xs text-green-400">Copied!</span>
+            <span className="text-xs text-[var(--color-accent-red-bright)]">Copied!</span>
           )}
         </div>
         <p
           className={`text-sm mb-6 ${
             connectionStatus === "connected"
-              ? "text-green-400"
-              : "text-yellow-400"
+              ? "text-white"
+              : "text-white/70"
           }`}
         >
           {connectionStatus === "connected"
@@ -71,18 +71,18 @@ export function LobbyWaiting({
         <h2 className="text-xl font-semibold text-white mb-4">Players</h2>
         <ul className="space-y-2 mb-6">
           {players.length === 0 ? (
-            <li className="text-gray-500">Waiting for players...</li>
+            <li className="text-white/60">Waiting for players...</li>
           ) : (
             players.map((p: import("../../types").Player) => (
-              <li key={p.id} className="text-gray-300 flex items-center gap-2">
+              <li key={p.id} className="text-white/90 flex items-center gap-2">
                 <span
                   className={`w-3 h-3 rounded-full ${
-                    p.isHost ? "bg-yellow-500" : "bg-blue-500"
+                    p.isHost ? "bg-[var(--color-accent-red)]" : "bg-white/50"
                   }`}
                 />
                 {p.name}
                 {p.isHost && (
-                  <span className="text-xs text-yellow-500">(Host)</span>
+                  <span className="text-xs text-[var(--color-accent-red-bright)]">(Host)</span>
                 )}
               </li>
             ))
@@ -91,7 +91,7 @@ export function LobbyWaiting({
         <div className="flex gap-2">
           <button
             onClick={onLeave}
-            className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition"
+            className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition border border-white/20"
           >
             Leave
           </button>
@@ -99,7 +99,7 @@ export function LobbyWaiting({
             <button
               onClick={() => sendStartGame(hostMapId)}
               disabled={players.length < 1}
-              className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition"
+              className="flex-1 px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
             >
               Start Game
             </button>

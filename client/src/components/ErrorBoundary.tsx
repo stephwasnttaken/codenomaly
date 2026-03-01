@@ -24,13 +24,13 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
       return (
-        <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6 text-center">
-          <h1 className="text-xl font-semibold text-gray-300 mb-2">Something went wrong</h1>
-          <p className="text-gray-500 text-sm mb-4">The game hit an error. Try refreshing the page.</p>
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 text-center text-white">
+          <h1 className="text-xl font-semibold text-white mb-2">Something went wrong</h1>
+          <p className="text-white/70 text-sm mb-4">The game hit an error. Try refreshing the page.</p>
           <button
             type="button"
             onClick={() => this.setState({ hasError: false })}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+            className="px-4 py-2 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white rounded-lg text-sm border border-white/20"
           >
             Try again
           </button>

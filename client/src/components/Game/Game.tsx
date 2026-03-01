@@ -149,15 +149,15 @@ export function Game() {
 
   if (phase === "gameover") {
     return fullScreenWrap(
-      <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6 w-full">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 w-full text-white">
         <h1
           className={`text-3xl font-bold mb-4 ${
-            win ? "text-green-500" : "text-red-500"
+            win ? "text-white" : "text-[var(--color-accent-red-bright)]"
           }`}
         >
           {win ? "You survived!" : "Game Over"}
         </h1>
-        <p className="text-gray-400 mb-6 text-center">
+        <p className="text-white/80 mb-6 text-center">
           {win
             ? "You made it through 5 minutes. The codebase is safe."
             : "Too many errors! The bugs overwhelmed the codebase."}
@@ -168,12 +168,12 @@ export function Game() {
               sendReturnToLobby();
               setHasReturnedToLobby(true);
             }}
-            className="px-6 py-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-medium"
+            className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white rounded-lg font-medium border border-white/20"
           >
             Return to Lobby
           </button>
         ) : (
-          <p className="text-gray-400 text-center">
+          <p className="text-white/70 text-center">
             Waiting for other players to return to the lobby...
           </p>
         )}
@@ -183,8 +183,8 @@ export function Game() {
 
   if (!currentFile) {
     return fullScreenWrap(
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center w-full">
-        <p className="text-gray-400">No files loaded. Waiting for game to start...</p>
+      <div className="min-h-screen bg-black flex items-center justify-center w-full text-white">
+        <p className="text-white/80">No files loaded. Waiting for game to start...</p>
       </div>
     );
   }
@@ -201,13 +201,13 @@ export function Game() {
       }
       rightSidebar={<ChatPanel onSendChat={sendChat} />}
     >
-      <header className="shrink-0 flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+      <header className="shrink-0 flex items-center justify-between px-4 py-2 bg-black border-b border-white/20">
         <h1 className="text-lg font-semibold text-white">Codenomaly</h1>
         <div className="flex items-center gap-4">
-          <span className="text-gray-400">
+          <span className="text-white/80">
             Errors: {Array.isArray(errors) ? errors.length : 0} / 5
           </span>
-          <span className="text-gray-400" title="Time remaining">
+          <span className="text-white/80" title="Time remaining">
             {timeDisplay}
           </span>
         </div>

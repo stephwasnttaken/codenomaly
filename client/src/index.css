@@ -1,11 +1,24 @@
 @import "tailwindcss";
 
-/* Ensure full viewport so full-screen glitch wrapper fills and centers correctly */
+/* Global font and color scheme (pixel-art title logo: black, white, dark red) */
+:root {
+  --font-vcr: "VCR OSD Mono", monospace;
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-text: #ffffff;
+  --color-text-muted: #a0a0a0;
+  --color-accent-red: #8b0000;
+  --color-accent-red-bright: #b22222;
+}
+
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
+  font-family: var(--font-vcr);
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 /* PowerGlitch ref goes here; inner div keeps layout so content is not forced to top */
@@ -21,9 +34,16 @@ body,
   width: 100%;
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
   overflow: hidden;
+}
+
+/* Pixel-art title logo: keep crisp, no smoothing */
+.pixel-art-title {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 /* Glitch overlay when stability hits 0 */
