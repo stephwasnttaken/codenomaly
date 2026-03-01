@@ -24,7 +24,7 @@ const glitchOptions = {
   timing: { duration: 2000, iterations: Number.POSITIVE_INFINITY },
   shake: { velocity: 18, amplitudeX: 0.25, amplitudeY: 0.25 },
   slice: { count: 8, velocity: 18, minHeight: 0.02, maxHeight: 0.2, hueRotate: true },
-  pulse: false,
+  pulse: false as const,
 };
 
 export function Game() {

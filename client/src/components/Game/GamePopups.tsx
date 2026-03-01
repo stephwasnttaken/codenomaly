@@ -55,7 +55,6 @@ function PopupContent({ type }: { type: GamePopupType }): ReactNode {
 }
 
 function Win97Window({
-  id,
   type,
   x,
   y,

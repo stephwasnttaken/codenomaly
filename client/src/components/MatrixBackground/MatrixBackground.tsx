@@ -8,10 +8,12 @@ function randomChoice<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)]!;
 }
 
+const CHARS_ARRAY = Array.from(CHARS);
+
 function generateColumnChars(length: number): string {
   let s = "";
   for (let i = 0; i < length; i++) {
-    s += randomChoice(CHARS);
+    s += randomChoice(CHARS_ARRAY);
   }
   return s;
 }
