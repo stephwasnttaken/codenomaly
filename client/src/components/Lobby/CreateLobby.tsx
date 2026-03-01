@@ -35,6 +35,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
     [selectedLang]
   );
   const [selectedMapId, setSelectedMapId] = useState<string>("calculator");
+  const [mapPopupId, setMapPopupId] = useState<string | null>(null);
 
   useEffect(() => {
     if (mapsForLang.length > 0 && !mapsForLang.some((m) => m.id === selectedMapId)) {
@@ -82,7 +83,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
       </div>
       <div>
         <p className="text-white/80 mb-2">Select programming language:</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2">
           {LANGUAGES.map((lang) => (
             <button
               key={lang.id}
@@ -92,7 +93,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
                 const next = MAPS_BY_LANGUAGE[lang.id] ?? MAPS_BY_LANGUAGE.javascript;
                 if (next[0]) setSelectedMapId(next[0].id);
               }}
-              className={`btn-pixel btn-pixel-sm ${selectedLang === lang.id ? "btn-pixel-active" : ""}`}
+              className={`btn-pixel btn-pixel-sm flex-1 min-w-0 ${selectedLang === lang.id ? "btn-pixel-active" : ""}`}
             >
               {lang.label}
             </button>
@@ -106,23 +107,53 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
             <button
               key={map.id}
               type="button"
-              onClick={() => setSelectedMapId(map.id)}
-              className={`btn-pixel btn-pixel-block w-full text-left ${selectedMapId === map.id ? "btn-pixel-active" : ""}`}
+              onClick={() => {
+                setSelectedMapId(map.id);
+                setMapPopupId(map.id);
+              }}
+              className={`btn-pixel btn-pixel-block w-full ${mapPopupId === map.id ? "btn-pixel-active" : ""}`}
             >
-              <span className="font-medium block">{map.name}</span>
-              <span className="text-sm opacity-90 block mt-1">{map.description}</span>
+              {map.name}
             </button>
           ))}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={handleCreate}
-        disabled={!hostName.trim()}
-        className="btn-pixel w-full"
-      >
-        Create
-      </button>
+      {mapPopupId !== null && (() => {
+        const map = mapsForLang.find((m) => m.id === mapPopupId);
+        if (!map) return null;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            onClick={(e) => e.target === e.currentTarget && setMapPopupId(null)}
+          >
+            <div
+              className="border-2 border-white rounded-none bg-black p-6 max-w-md w-full relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setMapPopupId(null)}
+                className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center text-white/80 hover:text-white border border-white/40 hover:border-white text-xl leading-none"
+              >
+                ×
+              </button>
+              <p className="text-white/90 text-lg pr-10 mb-4">{map.description}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  handleCreate();
+                  setMapPopupId(null);
+                }}
+                disabled={!hostName.trim()}
+                className="btn-pixel w-full"
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
