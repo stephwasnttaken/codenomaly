@@ -33,7 +33,7 @@ export function JoinLobby({ onJoined }: JoinLobbyProps) {
       onSubmit={handleJoin}
       className="flex flex-col gap-6 max-w-md mx-auto p-8 bg-black min-h-screen text-white"
     >
-      <h2 className="text-2xl font-bold text-white">Join Lobby</h2>
+      <h2 className="text-2xl font-bold text-white">Join</h2>
       <div>
         <label className="block text-white/80 mb-2">Lobby code</label>
         <input
@@ -59,7 +59,7 @@ export function JoinLobby({ onJoined }: JoinLobbyProps) {
       <button
         type="submit"
         disabled={code.trim().length !== 4 || !name.trim()}
-        className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
+        className="btn-pixel w-full"
       >
         Join
       </button>

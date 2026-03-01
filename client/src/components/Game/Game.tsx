@@ -165,11 +165,12 @@ export function Game() {
         </p>
         {!hasReturnedToLobby ? (
           <button
+            type="button"
             onClick={() => {
               sendReturnToLobby();
               setHasReturnedToLobby(true);
             }}
-            className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white rounded-lg font-medium border border-white/20"
+            className="btn-pixel"
           >
             Return to Lobby
           </button>

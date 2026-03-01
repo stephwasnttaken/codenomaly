@@ -68,28 +68,34 @@ export function Lobby() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center pt-12 pb-12">
-      <img
-        src="/codenomaly-title.png"
-        alt="Codenomaly"
-        className="w-full max-w-md mx-auto mb-12 object-contain pixel-art-title"
-      />
-      <p className="text-white/80 mb-8 text-center px-4">
-        Find errors in code. Work together. Don&apos;t let the bugs pile up.
-      </p>
-      <div className="flex gap-4 flex-wrap justify-center">
-        <button
-          onClick={() => setMode("create")}
-          className="px-8 py-4 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white font-semibold rounded-lg transition border border-white/20"
-        >
-          Create Lobby
-        </button>
-        <button
-          onClick={() => setMode("join")}
-          className="px-8 py-4 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] text-white font-semibold rounded-lg transition border border-white/20"
-        >
-          Join Lobby
-        </button>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="border-2 border-white rounded-none box-border flex flex-col items-center justify-center aspect-square w-[min(90vw,680px)] p-10 md:p-12">
+        <div className="flex flex-col items-center scale-105">
+          <img
+            src="/codenomaly-title.png"
+            alt="Codenomaly"
+            className="w-full max-w-lg mx-auto mb-2 object-contain pixel-art-title"
+          />
+          <p className="text-white/80 text-lg mb-14 text-center px-4">
+            Find errors in code. Work together. Don&apos;t let the bugs pile up.
+          </p>
+          <div className="flex flex-col items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setMode("create")}
+              className="btn-pixel btn-pixel-lg"
+            >
+              Create
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("join")}
+              className="btn-pixel btn-pixel-lg"
+            >
+              Join
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

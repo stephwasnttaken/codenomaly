@@ -68,7 +68,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-md mx-auto p-8">
-      <h2 className="text-2xl font-bold text-white">Create Lobby</h2>
+      <h2 className="text-2xl font-bold text-white">Create</h2>
       <div>
         <label className="block text-white/80 mb-2">Your name</label>
         <input
@@ -81,7 +81,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
         />
       </div>
       <div>
-        <p className="text-gray-400 mb-2">Select programming language:</p>
+        <p className="text-white/80 mb-2">Select programming language:</p>
         <div className="flex flex-wrap gap-2">
           {LANGUAGES.map((lang) => (
             <button
@@ -92,11 +92,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
                 const next = MAPS_BY_LANGUAGE[lang.id] ?? MAPS_BY_LANGUAGE.javascript;
                 if (next[0]) setSelectedMapId(next[0].id);
               }}
-              className={`px-4 py-2 rounded-lg border transition ${
-                selectedLang === lang.id
-                  ? "bg-blue-600 border-blue-500 text-white"
-                  : "bg-gray-800 border-gray-600 text-gray-400 hover:border-gray-500"
-              }`}
+              className={`btn-pixel btn-pixel-sm ${selectedLang === lang.id ? "btn-pixel-active" : ""}`}
             >
               {lang.label}
             </button>
@@ -111,11 +107,7 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
               key={map.id}
               type="button"
               onClick={() => setSelectedMapId(map.id)}
-              className={`w-full text-left px-4 py-3 rounded-lg border transition ${
-                selectedMapId === map.id
-                  ? "bg-[var(--color-accent-red)] border-white/30 text-white"
-                  : "bg-[var(--color-surface)] border-white/20 text-white/80 hover:border-white/40"
-              }`}
+              className={`btn-pixel btn-pixel-block w-full text-left ${selectedMapId === map.id ? "btn-pixel-active" : ""}`}
             >
               <span className="font-medium block">{map.name}</span>
               <span className="text-sm opacity-90 block mt-1">{map.description}</span>
@@ -124,11 +116,12 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
         </div>
       </div>
       <button
+        type="button"
         onClick={handleCreate}
         disabled={!hostName.trim()}
-        className="px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
+        className="btn-pixel w-full"
       >
-        Create Lobby
+        Create
       </button>
     </div>
   );

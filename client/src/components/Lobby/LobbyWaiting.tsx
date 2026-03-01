@@ -51,9 +51,9 @@ export function LobbyWaiting({
             type="button"
             onClick={copyCode}
             title="Copy code"
-            className="p-1.5 rounded-md text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            className="btn-pixel btn-pixel-sm px-2"
           >
-            <FiCopy className="w-4 h-4" aria-hidden />
+            <FiCopy className="w-4 h-4 inline-block" aria-hidden />
           </button>
           {copied && (
             <span className="text-xs text-[var(--color-accent-red-bright)]">Copied!</span>
@@ -92,16 +92,18 @@ export function LobbyWaiting({
         </ul>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={onLeave}
-            className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition border border-white/20"
+            className="btn-pixel flex-1"
           >
             Leave
           </button>
           {isHost && (
             <button
+              type="button"
               onClick={() => sendStartGame(hostMapId)}
               disabled={safePlayers.length < 1}
-              className="flex-1 px-6 py-3 bg-[var(--color-accent-red)] hover:bg-[var(--color-accent-red-bright)] disabled:bg-white/20 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition border border-white/20"
+              className="btn-pixel flex-1"
             >
               Start Game
             </button>

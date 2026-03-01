@@ -49,6 +49,64 @@ body,
   image-rendering: crisp-edges;
 }
 
+/* Menu buttons: pixel-art asset, theme font, text encased. Image aspect ratio preserved, no solid fill. */
+.btn-pixel {
+  font-family: var(--font-vcr);
+  color: #fff;
+  background-image: url(/button-unclicked.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  cursor: pointer;
+  padding: 0.85rem 2rem;
+  min-height: 64px;
+  min-width: 120px;
+  font-size: 0.95rem;
+  text-align: center;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.btn-pixel:active:not(:disabled) {
+  background-image: url(/button-clicked.png);
+}
+.btn-pixel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-pixel-active,
+.btn-pixel-active:hover {
+  background-image: url(/button-clicked.png);
+}
+.btn-pixel-lg {
+  min-height: 80px;
+  min-width: 160px;
+  padding: 1rem 2.5rem;
+  font-size: 1.25rem;
+}
+.btn-pixel-sm {
+  min-height: 52px;
+  min-width: 96px;
+  padding: 0.6rem 1.5rem;
+  font-size: 0.9rem;
+}
+.btn-pixel-block {
+  white-space: normal;
+  line-height: 1.3;
+  padding: 0.85rem 1.5rem;
+}
+.btn-pixel-icon {
+  white-space: nowrap;
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0.6rem;
+}
+
 /* Glitch overlay when stability hits 0 */
 .glitch-overlay {
   background: repeating-linear-gradient(
