@@ -11,7 +11,7 @@ export function FileExplorer({ onSelectFile }: FileExplorerProps) {
   if (files.length <= 1) return null;
 
   return (
-    <div className="w-48 shrink-0 bg-black border-r border-white/20 flex flex-col">
+    <div className="w-full min-h-0 flex flex-col border-t border-white/20">
       <div className="p-2 text-xs font-semibold text-white/80 uppercase tracking-wider">
         Files
       </div>

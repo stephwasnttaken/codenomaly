@@ -18,6 +18,7 @@ function generateLobbyCode(): string {
 }
 
 interface CreateLobbyProps {
+  onBack: () => void;
   onJoined: (
     roomId: string,
     languages: string[],
@@ -26,7 +27,7 @@ interface CreateLobbyProps {
   ) => void;
 }
 
-export function CreateLobby({ onJoined }: CreateLobbyProps) {
+export function CreateLobby({ onBack, onJoined }: CreateLobbyProps) {
   const [lobbyCode, setLobbyCode] = useState<string | null>(null);
   const [hostName, setHostName] = useState("");
   const [selectedLang, setSelectedLang] = useState<string>("javascript");
@@ -69,7 +70,17 @@ export function CreateLobby({ onJoined }: CreateLobbyProps) {
 
   return (
     <div className="flex flex-col gap-6 max-w-md mx-auto p-8">
-      <h2 className="text-2xl font-bold text-white">Create</h2>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="btn-pixel btn-pixel-sm"
+          aria-label="Back"
+        >
+          Back
+        </button>
+        <h2 className="text-2xl font-bold text-white">Create</h2>
+      </div>
       <div>
         <label className="block text-white/80 mb-2">Your name</label>
         <input

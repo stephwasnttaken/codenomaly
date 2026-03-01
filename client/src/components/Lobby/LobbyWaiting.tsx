@@ -51,9 +51,10 @@ export function LobbyWaiting({
             type="button"
             onClick={copyCode}
             title="Copy code"
-            className="btn-pixel btn-pixel-sm px-2"
+            className="btn-pixel-small-icon"
+            aria-label="Copy code"
           >
-            <FiCopy className="w-4 h-4 inline-block" aria-hidden />
+            <FiCopy className="w-4 h-4 inline-block text-white" aria-hidden />
           </button>
           {copied && (
             <span className="text-xs text-[var(--color-accent-red-bright)]">Copied!</span>

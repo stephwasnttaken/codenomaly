@@ -44,6 +44,7 @@ export function Lobby() {
   if (mode === "create") {
     return (
       <CreateLobby
+        onBack={() => setMode("choose")}
         onJoined={(id, languages, hostName, mapId) => {
           setRoomId(id);
           setMyName(hostName || "Host");
@@ -57,6 +58,7 @@ export function Lobby() {
   if (mode === "join") {
     return (
       <JoinLobby
+        onBack={() => setMode("choose")}
         onJoined={(id, name) => {
           setRoomId(id);
           setMyName(name);
@@ -77,7 +79,7 @@ export function Lobby() {
             className="w-full max-w-lg mx-auto mb-2 object-contain pixel-art-title"
           />
           <p className="text-white/80 text-lg mb-14 text-center px-4">
-            Find errors in code. Work together. Don&apos;t let the bugs pile up.
+            Find anomalies (errors) in code. Work together. Don&apos;t let the bugs pile up.
           </p>
           <div className="flex flex-col items-center gap-4">
             <button

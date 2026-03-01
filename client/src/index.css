@@ -107,6 +107,35 @@ body,
   padding: 0.6rem;
 }
 
+/* Small icon buttons (copy, send): use dedicated pixel-art assets */
+.btn-pixel-small-icon {
+  font-family: var(--font-vcr);
+  color: #fff;
+  background-image: url(/button-small-unclicked.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem;
+  min-height: 36px;
+  min-width: 36px;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-pixel-small-icon:active:not(:disabled) {
+  background-image: url(/button-small-clicked.png);
+}
+.btn-pixel-small-icon:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Glitch overlay when stability hits 0 */
 .glitch-overlay {
   background: repeating-linear-gradient(

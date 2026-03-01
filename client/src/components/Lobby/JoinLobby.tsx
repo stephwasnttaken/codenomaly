@@ -2,10 +2,11 @@ import { useState } from "react";
 import { usePartyConnection } from "../../hooks/usePartyConnection";
 
 interface JoinLobbyProps {
+  onBack: () => void;
   onJoined: (roomId: string, playerName: string) => void;
 }
 
-export function JoinLobby({ onJoined }: JoinLobbyProps) {
+export function JoinLobby({ onBack, onJoined }: JoinLobbyProps) {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -33,7 +34,17 @@ export function JoinLobby({ onJoined }: JoinLobbyProps) {
       onSubmit={handleJoin}
       className="flex flex-col gap-6 max-w-md mx-auto p-8 bg-black min-h-screen text-white"
     >
-      <h2 className="text-2xl font-bold text-white">Join</h2>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          className="btn-pixel btn-pixel-sm"
+          aria-label="Back"
+        >
+          Back
+        </button>
+        <h2 className="text-2xl font-bold text-white">Join</h2>
+      </div>
       <div>
         <label className="block text-white/80 mb-2">Lobby code</label>
         <input
