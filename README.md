@@ -1,5 +1,5 @@
 # Codenomaly
-
+![Home Screenshot](Home%20Screen.png)
 A real-time browser multiplayer game inspired by "I'm On Observation Duty." Players find anomalies (errors) in code and guess their types before the bugs overwhelm the codebase. Work together, manage your stability, and survive 5 minutes to win.
 
 **Built by Stephen Mertyl, Naima Sana, Kira Archer, Marilyn Anderson**
@@ -66,11 +66,12 @@ cd client && npm run build
 ## How to Play
 
 ### Lobby
-
 - **Create**: Choose a programming language (C#, C, or Python), pick a map (each has a short description), and create a lobby. Share the 4-letter code with friends.
 - **Join**: Enter the 4-letter code and your name to join an existing lobby.
 - The host can start the game when at least one other player has joined.
-
+![Create Lobby Screenshot](Create%20Lobby%20Screen.png)
+![Join Screenshot](Join%20Screen.png)
+![How to Play Screenshot](How%20to%20Play%20Screen.png)
 ### Selecting and fixing errors
 
 - **Click a line** in the code editor to select it. A dropdown appears above the editor.
@@ -84,15 +85,19 @@ cd client && npm run build
 - Your **stability meter** (0–100%) is shown on the left. It goes **down** over time when you view files that contain errors, and **up** when you view files with no errors or when you fix an error correctly.
 - If stability reaches **0%**, your screen glitches for several seconds and you recover to 50%. You can't interact during the glitch.
 - **Survive 5 minutes** (or until the timer runs out) to win.
-
+![Glitch Screenshot](glitch.png)
 ### Popups
 
 - During the game, **random popup windows** may appear (e.g. messages, warnings). Close them by clicking the **X** in the top-right corner so you can keep playing.
+![Popup Screenshot](popup.png)
 
 ### Winning and losing
 
 - **Win**: Survive until the 5-minute timer ends.
+
+![Survived Screenshot](survived.png)
 - **Lose**: The total number of errors in the codebase reaches the limit (based on player count).
+![Game Over Screenshot](game_over.png)
 - After the game, use **Return to Lobby** to go back; once everyone has returned, the host can start another round.
 
 ## Project Structure
